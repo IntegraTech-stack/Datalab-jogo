@@ -1,0 +1,319 @@
+/* DataLab — the game menu as a little phone (phone.js). PC and phones.
+   Standing up on tall screens (bottom right on a PC, centred on a phone), lying down on short ones (a phone
+   in landscape). Sizes follow the visible screen (dvh) and keep clear of the notch and the gesture bar. */
+
+/* the old top-bar groups stay in the page (the apps press their buttons) but never show */
+.has-phone .hud-actions { display: none !important; }
+.has-phone .hud-top > #passBtn { display: none; }
+
+/* ---------- the top-bar button ---------- */
+.phone-btn { position: relative; margin-left: auto; gap: 8px; flex: none; }
+.phone-btn kbd { margin-left: 2px; }
+.phone-btn__ico { position: relative; display: inline-block; width: 10px; height: 15px; border: 2px solid currentColor; border-radius: 3px !important; }
+.phone-btn__ico i { position: absolute; left: 2px; right: 2px; bottom: 1px; height: 2px; background: currentColor; }
+.phone-btn[aria-expanded="true"] { border-color: #3dffa2; color: #3dffa2; background: rgba(61, 255, 162, 0.1); }
+.phone-btn.is-alert { border-color: var(--warn); }
+.phone-btn .phone-btn__badge { position: absolute; top: -6px; right: -6px; margin: 0; }
+.has-phone:not(.is-phone) .phone-btn:has(~ .hud-actions .is-guide),
+.has-phone .phone-btn.is-guide { border-color: var(--signal); animation: guide 1.4s var(--ease) infinite; }
+
+/* ---------- the game behind goes darker and a little out of focus; a tap there closes ---------- */
+/* The world stops redrawing while the menu is up (scene.js, o.calm), so its picture is blurred once and
+   kept — a live backdrop-filter over the moving game cost about a third of the frames on a phone. */
+.is-phone .game #world { filter: blur(3px) brightness(0.7) saturate(0.8); transition: none; }
+.is-phone-out .game #world { transition: filter 0.25s ease-out; }
+.phone-scrim {
+  position: absolute; inset: 0; z-index: 39;
+  background: radial-gradient(120% 90% at 50% 100%, rgba(3, 6, 14, 0.42), rgba(3, 5, 12, 0.6));
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity 0.28s ease-out, visibility 0s 0.28s;
+}
+.is-phone .phone-scrim { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 0.28s ease-out; }
+.phone-scrim.is-eat { visibility: visible; pointer-events: auto; }
+
+/* ---------- the phone ---------- */
+.phone {
+  --ph-w: 340px;
+  --ph-h: min(660px, calc(100vh - 92px));
+  --cell: minmax(68px, 1fr);
+  --ico: 52px;
+  --tap: #3dffa2;
+  position: absolute; right: 28px; bottom: 16px; z-index: 40;
+  width: var(--ph-w); height: var(--ph-h);
+  transform: translate3d(0, calc(100% + 48px), 0);
+  visibility: hidden;
+  /* only the phone moves (no layout while it slides): smooth on weak phones too */
+  will-change: transform; contain: layout style;
+  transition: transform 0.3s cubic-bezier(0.5, 0, 0.75, 0), visibility 0s 0.3s;
+  font-family: 'Silkscreen', monospace;
+  -webkit-user-select: none; user-select: none;
+}
+@supports (height: 100dvh) { .phone { --ph-h: min(660px, calc(100dvh - 92px)); } }
+.phone.is-open { transform: none; visibility: visible; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s; }
+.phone.is-drag { transition: none; }
+
+.phone__body {
+  position: relative; height: 100%; padding: 8px;
+  border-radius: 38px !important;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.10), transparent 26%) border-box,
+    linear-gradient(160deg, #26314f, #111a2e 45%, #0a0f1c);
+  box-shadow:
+    inset 0 0 0 1.5px #5b6888, inset 0 0 0 3px #0a0f1c, inset 0 1px 0 3px rgba(255, 255, 255, 0.08),
+    0 0 0 1.5px #04060b,
+    0 0 0 3px rgba(61, 255, 162, 0.22), 0 0 22px rgba(61, 255, 162, 0.18),
+    0 24px 60px rgba(0, 0, 0, 0.65);
+}
+/* side keys */
+.phone__key { position: absolute; width: 3px; border-radius: 0 2px 2px 0 !important; background: linear-gradient(90deg, #5b6888, #36405a); }
+.phone__key--a { right: -3px; top: 22%; height: 46px; }
+.phone__key--b { left: -3px; top: 16%; height: 28px; border-radius: 2px 0 0 2px !important; }
+
+.phone__screen {
+  position: relative; display: flex; flex-direction: column; height: 100%; overflow: hidden;
+  border-radius: 30px !important;
+  background:
+    linear-gradient(rgba(61, 255, 162, 0.04) 1px, transparent 1px) 0 0 / 16px 16px,
+    linear-gradient(90deg, rgba(61, 255, 162, 0.04) 1px, transparent 1px) 0 0 / 16px 16px,
+    radial-gradient(130% 60% at 50% 0%, #12403a 0%, #0c1828 55%, #070b14 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 0 24px rgba(0, 0, 0, 0.5);
+  color: #e6ecf5;
+}
+/* a faint glass reflection across the screen */
+.phone__screen::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 3;
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 32%);
+}
+
+/* status bar: time · camera · signal, battery */
+.phone__status {
+  position: relative; flex: none; display: flex; align-items: center; justify-content: space-between;
+  height: 32px; padding: 4px 20px 0 24px; font-size: 11px; letter-spacing: 0.5px;
+  touch-action: none;
+}
+.phone__time { font-family: 'Press Start 2P', monospace; font-size: 9px; }
+.phone__cam { position: absolute; left: 50%; top: 8px; width: 70px; height: 18px; margin-left: -35px; border-radius: 10px !important; background: #000; box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04); }
+.phone__cam::after { content: ''; position: absolute; right: 7px; top: 5px; width: 8px; height: 8px; border-radius: 50% !important; background: #1b2540; box-shadow: inset 1px 1px 0 #3a4f7a; }
+.phone__sys { display: inline-flex; align-items: center; gap: 5px; }
+.phone__sig { display: inline-flex; align-items: flex-end; gap: 1px; height: 9px; }
+.phone__sig i { width: 2px; background: #e6ecf5; }
+.phone__sig i:nth-child(1) { height: 3px; } .phone__sig i:nth-child(2) { height: 5px; } .phone__sig i:nth-child(3) { height: 7px; } .phone__sig i:nth-child(4) { height: 9px; }
+.phone__net { font-size: 9px; color: #3dffa2; }
+.phone__bat { position: relative; width: 20px; height: 10px; padding: 1px; border: 1px solid #e6ecf5; border-radius: 3px !important; }
+.phone__bat::after { content: ''; position: absolute; right: -3px; top: 2px; width: 2px; height: 4px; border-radius: 0 1px 1px 0 !important; background: #e6ecf5; }
+.phone__bat i { display: block; height: 100%; width: 100%; border-radius: 1px !important; background: #3dffa2; transition: width 0.4s; }
+.phone__pct { font-weight: 400; font-size: 9px; }
+.phone.is-ups .phone__bat i { background: #ffd166; }
+.phone.is-ups .phone__pct { color: #ffd166; }
+.phone.is-low .phone__bat i, .phone.is-low .phone__pct { background: #ff5d6c; color: #ff5d6c; }
+.phone.is-low .phone__pct { background: none; animation: phone-blink 0.8s steps(1) infinite; }
+@keyframes phone-blink { 50% { opacity: 0.25; } }
+
+/* title: "Menu", the time of day and the company's cash, and the × */
+.phone__head {
+  flex: none; display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px 10px 20px; touch-action: none;
+}
+.phone__title { flex: 1 1 auto; min-width: 0; display: grid; gap: 5px; }
+.phone__title b { font: 400 15px/1 'Press Start 2P', monospace; color: #3dffa2; text-shadow: 0 2px #0f4a33, 0 0 14px rgba(61, 255, 162, 0.35); letter-spacing: 1px; }
+.phone__sub { display: flex; flex-wrap: wrap; gap: 0 10px; font: 400 17px/1 'VT323', monospace; color: #8a98ad; white-space: nowrap; }
+.phone__cash { color: #e6ecf5; }
+.phone__cash[hidden], .phone__sub > [hidden] { display: none; }
+.phone__x {
+  position: relative; flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 0;
+  border: 0; border-radius: 14px !important; cursor: pointer;
+  background: rgba(230, 236, 245, 0.08); color: #dfe6f1;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), inset 0 1px rgba(255, 255, 255, 0.08);
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  transition: background 0.15s, color 0.15s, transform 0.12s;
+}
+.phone__x svg { width: 14px; height: 14px; }
+.phone__x:hover, .phone__x:focus-visible { background: rgba(255, 93, 108, 0.18); color: #ff8a95; outline: none; box-shadow: inset 0 0 0 1px rgba(255, 93, 108, 0.6); }
+.phone__x:active { transform: scale(0.9); }
+
+/* the apps, in sections; only this part scrolls */
+.phone__apps {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden;
+  overscroll-behavior: contain; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 2px 12px 14px;
+}
+.phone__apps::-webkit-scrollbar { display: none; }
+.phone__sec[hidden] { display: none; }
+.phone__sech {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 6px; padding: 0 6px;
+  font: 400 10px/1 'Silkscreen', monospace; letter-spacing: 1.5px; text-transform: uppercase; color: var(--cat-a);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--cat-a) 45%, transparent);
+}
+.phone__sech::before { content: ''; flex: none; width: 6px; height: 6px; background: var(--cat-a); box-shadow: 0 0 6px var(--cat-a); }
+.phone__sech::after { content: ''; flex: 1 1 auto; height: 1px; background: linear-gradient(90deg, color-mix(in srgb, var(--cat-a) 45%, transparent), transparent); }
+.phone__grid { display: grid; grid-template-columns: repeat(auto-fill, var(--cell)); gap: 6px 2px; }
+
+.papp {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  min-width: 0; min-height: 44px; padding: 7px 2px 4px; border: 0; border-radius: 14px !important;
+  background: none; color: #dfe6f1; cursor: pointer;
+  font: inherit; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+}
+.papp[hidden] { display: none; }
+.papp__ico {
+  position: relative; display: grid; place-items: center; width: var(--ico); height: var(--ico); flex: none;
+  border-radius: 15px !important;
+  background: linear-gradient(165deg, color-mix(in srgb, var(--app-c) 70%, #ffffff 30%) 0%, var(--app-c) 46%, color-mix(in srgb, var(--app-c) 68%, #000000 32%) 100%);
+  box-shadow:
+    inset 0 2px rgba(255, 255, 255, 0.22), inset 0 -3px rgba(0, 0, 0, 0.32), inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 3px 0 rgba(0, 0, 0, 0.45), 0 0 14px color-mix(in srgb, var(--app-acc) 18%, transparent);
+  color: #f4f8ff;
+  transition: transform 0.16s cubic-bezier(0.3, 1.6, 0.5, 1), filter 0.12s;
+}
+/* 12-pixel art drawn at exactly 3× (2× in the small spots): every pixel stays sharp */
+.papp__ico svg { width: 36px; height: 36px; filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.5)); }
+.papp__name {
+  max-width: 100%; padding: 0 2px;
+  font: 400 17px/0.9 'VT323', monospace; letter-spacing: 0.2px; text-align: center; color: #e9eef7;
+  text-shadow: 0 1px 0 #000, 0 0 6px rgba(0, 0, 0, 0.6);
+  overflow-wrap: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+/* one long word (Atendimento, Inventário): a bit smaller and allowed past the tile's edges, never cut in two */
+.papp--long .papp__name { font-size: 15px; letter-spacing: 0; max-width: none; margin: 0 -10px; white-space: nowrap; display: block; }
+@media (hover: hover) {
+  .papp:hover .papp__ico { transform: translateY(-2px) scale(1.05); }
+}
+.papp:focus-visible .papp__ico { transform: translateY(-2px) scale(1.05); }
+/* the press: the tile sinks and darkens, like a real button */
+.papp:active .papp__ico { transform: translateY(2px) scale(0.9); filter: brightness(0.8); box-shadow: inset 0 2px rgba(255, 255, 255, 0.12), inset 0 -1px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(0, 0, 0, 0.45); transition-duration: 0.06s; }
+.papp:focus-visible { outline: none; }
+.papp:focus-visible .papp__ico { box-shadow: 0 0 0 2px #070b14, 0 0 0 4px var(--tap), inset 0 2px rgba(255, 255, 255, 0.2), inset 0 -3px rgba(0, 0, 0, 0.3); }
+/* notification badge: on the tile's corner, over the round edge (never over the drawing) */
+.papp__badge {
+  position: absolute; top: 0; left: calc(50% + var(--ico) / 2 - 12px); z-index: 1;
+  min-width: 20px; height: 20px; padding: 0 5px;
+  display: grid; place-items: center;
+  border-radius: 10px !important; border: 2px solid #0a1220; background: #ff3b4e; color: #fff;
+  font: 400 8px/1 'Press Start 2P', monospace;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.45), 0 0 10px rgba(255, 59, 78, 0.55);
+  animation: papp-pop 0.3s cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+.papp__badge[hidden] { display: none; }
+@keyframes papp-pop { from { transform: scale(0.3); } }
+.papp.is-guide .papp__ico { box-shadow: 0 0 0 2px #070b14, 0 0 0 4px var(--signal), 0 0 16px var(--signal); animation: guide 1.4s var(--ease) infinite; }
+.papp.is-done .papp__ico::after { content: '✓'; position: absolute; inset: 0; display: grid; place-items: center; border-radius: inherit !important; background: rgba(5, 10, 18, 0.72); color: #3dffa2; font: 400 14px/1 'Press Start 2P', monospace; }
+
+/* Música: Spotify and YouTube Music as wide buttons, two per row, the same tiles as the rest */
+.papp--wide {
+  grid-column: span 2; flex-direction: row; justify-content: flex-start; gap: 10px;
+  min-height: 52px; margin: 0 4px; padding: 6px 10px 6px 6px;
+  background: linear-gradient(100deg, color-mix(in srgb, var(--app-c) 55%, transparent), rgba(230, 236, 245, 0.04));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--app-acc) 30%, transparent), inset 0 1px rgba(255, 255, 255, 0.07);
+}
+.papp--wide .papp__ico { --ico: 40px; width: 40px; height: 40px; border-radius: 12px !important; }
+.papp--wide .papp__ico svg { width: 24px; height: 24px; }
+.papp--wide .papp__name { text-align: left; font-size: 18px; }
+.papp--wide .papp__badge { left: 34px; top: 0; }
+.papp--wide:active { background: linear-gradient(100deg, color-mix(in srgb, var(--app-c) 75%, transparent), rgba(230, 236, 245, 0.08)); }
+
+/* dock: the system apps, on glass */
+.phone__dock {
+  flex: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2px;
+  margin: 0 10px 2px; padding: 6px 4px 4px;
+  border-radius: 22px !important; background: rgba(230, 236, 245, 0.07);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.09), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+.papp--dock { --ico: 46px; gap: 4px; padding-top: 6px; }
+.papp--dock .papp__name { font-size: 15px; color: #b9c4d6; }
+
+/* home bar: a tap or a swipe down closes; the touch area is taller than the line */
+.phone__home { flex: none; display: grid; place-items: center; height: 26px; border: 0; padding: 0; background: none; cursor: pointer; touch-action: none; -webkit-tap-highlight-color: transparent; }
+.phone__home i { width: 110px; height: 5px; border-radius: 3px !important; background: rgba(230, 236, 245, 0.7); transition: width 0.15s, background 0.15s; }
+.phone__home:hover i, .phone__home:focus-visible i { width: 130px; background: #3dffa2; }
+.phone__home:focus-visible { outline: none; }
+
+/* ---------- lying down: a phone in landscape (short screens) ---------- */
+.phone.phone--land {
+  --ph-h: calc(100vh - max(8px, env(safe-area-inset-top)) - max(8px, env(safe-area-inset-bottom)));
+  --cell: clamp(64px, 9.4vw, 80px);
+  --ico: 46px;
+  left: max(24px, env(safe-area-inset-left)); right: max(24px, env(safe-area-inset-right));
+  bottom: max(8px, env(safe-area-inset-bottom));
+  width: auto; max-width: 780px; margin: 0 auto;
+}
+@supports (height: 100dvh) {
+  .phone.phone--land { --ph-h: calc(100dvh - max(8px, env(safe-area-inset-top)) - max(8px, env(safe-area-inset-bottom))); }
+}
+.phone--land .phone__body { padding: 6px; border-radius: 30px !important; }
+.phone--land .phone__key { display: none; }
+.phone--land .phone__screen {
+  display: grid; border-radius: 25px !important;
+  grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas: 'st st' 'hd dock' 'apps dock' 'home home';
+}
+.phone--land .phone__status { grid-area: st; height: 22px; padding: 2px 22px 0 26px; }
+.phone--land .phone__cam { top: 4px; height: 14px; width: 60px; margin-left: -30px; }
+.phone--land .phone__cam::after { top: 3px; }
+.phone--land .phone__head { grid-area: hd; padding: 2px 8px 4px 22px; }
+.phone--land .phone__title { display: flex; align-items: baseline; gap: 14px; }
+.phone--land .phone__title b { font-size: 12px; }
+.phone--land .phone__sub { font-size: 16px; }
+.phone--land .phone__apps {
+  grid-area: apps; display: flex; flex-direction: row; flex-wrap: wrap; align-content: flex-start; gap: 6px 18px;
+  padding: 0 8px 10px 16px;
+}
+/* sections sit side by side when they fit: each one as wide as its apps */
+.phone--land .phone__sec { flex: 0 1 calc(var(--n, 4) * var(--cell) + (var(--n, 4) - 1) * 2px); min-width: calc(2 * var(--cell)); max-width: 100%; }
+.phone--land .phone__sec[data-cat="music"] { flex-basis: calc(var(--n, 2) * 2 * var(--cell) + 8px); }
+.phone--land .phone__sech { margin-bottom: 2px; }
+.phone--land .phone__grid { gap: 2px; }
+.phone--land .papp { gap: 4px; padding: 6px 1px 2px; }
+.phone--land .papp__ico { border-radius: 13px !important; }
+.phone--land .papp__ico svg { width: 36px; height: 36px; }
+.phone--land .papp--wide { min-height: 48px; margin: 4px 2px 0; }
+.phone--land .papp--wide .papp__ico { width: 36px; height: 36px; }
+.phone--land .phone__dock {
+  grid-area: dock; grid-template-columns: 1fr; align-content: space-evenly; gap: 0;
+  width: 84px; margin: 0 12px 4px 0; padding: 6px 2px; border-radius: 20px !important;
+}
+.phone--land .papp--dock { --ico: 40px; padding: 3px 0 2px; gap: 2px; }
+.phone--land .papp--dock .papp__ico svg { width: 24px; height: 24px; }
+.phone--land .papp--dock .papp__name { font-size: 14px; }
+.phone--land .phone__home { grid-area: home; height: 18px; }
+.phone--land .phone__home::before { content: ''; position: absolute; left: 30%; right: 30%; bottom: 0; height: 32px; } /* a bigger touch area */
+.phone--land .phone__home i { width: 96px; height: 4px; }
+/* very short screens (667×375 with the browser bar, 640×360…): a tighter fit, still nothing cut */
+@media (max-height: 380px) {
+  .phone.phone--land { --ico: 44px; }
+  .phone--land .phone__status { height: 20px; }
+  .phone--land .papp--dock { --ico: 36px; }
+  .phone--land .papp--dock .papp__name { font-size: 13px; }
+}
+
+/* ---------- phones (touch): centred, clear of the notch and the gesture bar ---------- */
+.is-mobile .phone:not(.phone--land) {
+  --ph-w: min(400px, calc(100vw - 20px - env(safe-area-inset-left) - env(safe-area-inset-right)));
+  --ph-h: min(720px, calc(100vh - 70px - env(safe-area-inset-top) - max(8px, env(safe-area-inset-bottom))));
+  right: 0; left: 0; margin: 0 auto;
+  bottom: max(8px, env(safe-area-inset-bottom));
+}
+@supports (height: 100dvh) {
+  .is-mobile .phone:not(.phone--land) { --ph-h: min(720px, calc(100dvh - 70px - env(safe-area-inset-top) - max(8px, env(safe-area-inset-bottom)))); }
+}
+/* narrow phones (≤ 360 px): three wider columns read better than four squeezed ones */
+@media (max-width: 370px) {
+  .is-mobile .phone:not(.phone--land) { --cell: minmax(64px, 1fr); --ico: 48px; }
+  .is-mobile .phone:not(.phone--land) .phone__body { padding: 6px; }
+}
+.is-mobile .phone-btn kbd { display: none; }
+.is-mobile .phone-btn { height: 38px; min-width: 44px; padding: 0 12px; }
+/* the joystick and the action button wait under the menu (no stray touches through it) */
+.is-mobile.is-phone .touch { visibility: hidden; }
+
+/* team chat on a phone: a × to put it away (phone.js) */
+.team-chat__x { display: none; }
+.is-mobile .team-chat__x { display: grid; place-items: center; position: absolute; top: 4px; right: 4px; width: 40px; height: 40px; z-index: 2; }
+.is-mobile .team-chat__x svg { width: 12px; height: 12px; }
+.is-mobile .team-chat__head { padding-right: 52px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .phone, .phone.is-open { transition: visibility 0s; }
+  .phone-scrim, .is-phone .phone-scrim { transition: none; }
+  .papp__badge { animation: none; }
+}

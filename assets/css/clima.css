@@ -1,0 +1,25 @@
+/* DataLab — climatização (clima.js): a temperatura sobre cada ar de precisão e o bloco "Melhorar" no painel. */
+
+/* ---------- a temperatura do ar insuflado, sobre o aparelho ---------- */
+.clima-temp {
+  position: absolute; left: 0; top: 0; z-index: 7; pointer-events: none;
+  padding: 2px 6px 1px; background: rgba(6, 9, 14, 0.88); border: 1px solid var(--c, #a0c3ec);
+  color: var(--c, #a0c3ec); font: 400 17px/1 'VT323', var(--font-mono, monospace); white-space: nowrap;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5), 0 0 8px color-mix(in srgb, var(--c, #a0c3ec) 35%, transparent);
+}
+.clima-temp.is-off { box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5); }
+/* (a window on top, the phone, the computer screen: the tags stay out of the way) */
+.is-pcdesk .clima-temp, #game:has(.overlay.is-open) .clima-temp { display: none; }
+
+/* ---------- o painel do aparelho ---------- */
+.clima-stars { margin-left: 6px; color: #a0c3ec; letter-spacing: 1px; }
+.clima-stars i { font-style: normal; opacity: 0.25; }
+.clima-up { padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--c, #a0c3ec) 45%, transparent); border-left-width: 3px; background: color-mix(in srgb, var(--c, #a0c3ec) 6%, transparent); }
+.clima-up .clima-stars { color: var(--c, #a0c3ec); }
+.clima-up__name { margin-top: 6px; font-size: 16px; line-height: 20px; color: var(--c, #a0c3ec); }
+.clima-up__desc { margin-top: 2px; font-size: 12px; line-height: 17px; color: var(--mute); }
+.clima-up__gain { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0; padding: 0; list-style: none; font-size: 12px; color: var(--body); }
+.clima-up__gain b { color: var(--ink); font-weight: 500; }
+.clima-up .actions { display: flex; align-items: center; gap: 10px; }
+.clima-up__poor { font-size: 12px; color: var(--warn, #ffd23f); }
+.clima-up.is-max p { margin-top: 6px; font-size: 13px; color: var(--body); }

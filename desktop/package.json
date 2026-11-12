@@ -1,0 +1,20 @@
+{
+  "name": "datalab-desktop",
+  "private": true,
+  "version": "0.9.0",
+  "description": "DataLab para desktop (Tauri v2): o jogo numa janela própria + o personagem em segundo plano no canto da tela.",
+  "type": "module",
+  "scripts": {
+    "stage": "node scripts/stage.mjs",
+    "serve": "node scripts/serve.mjs",
+    "dev": "tauri dev",
+    "dev:local": "node scripts/dev-local.mjs",
+    "build": "tauri build",
+    "build:mac": "tauri build --target universal-apple-darwin",
+    "build:win": "tauri build --bundles nsis",
+    "icons": "tauri icon ../assets/img/icon-512.png -o src-tauri/icons"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  }
+}

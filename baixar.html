@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Baixar o DataLab</title>
+  <meta name="description" content="Instale o DataLab no Windows ou no macOS.">
+  <!-- reached from inside the game (Jogo → Baixar para PC): not listed by search engines -->
+  <meta name="robots" content="noindex">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Cpath fill='%2305070d' d='M0 0h16v16H0z'/%3E%3Cpath fill='%2346506b' d='M3 1h10v14H3z'/%3E%3Cpath fill='%23141b2d' d='M4 2h8v2H4zM4 5h8v2H4zM4 8h8v2H4zM4 11h8v2H4z'/%3E%3Cpath fill='%233dffa2' d='M5 3h1v1H5zM5 6h1v1H5zM5 12h1v1H5zM7 6h1v1H7z'/%3E%3Cpath fill='%23ffb547' d='M5 9h1v1H5z'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#05070d">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/baixar.css">
+</head>
+<body>
+  <!-- the landing page's datacenter (assets/js/dc-backdrop.js), dimmed behind the page -->
+  <canvas id="dc" aria-hidden="true"></canvas>
+  <div class="shade" aria-hidden="true"></div>
+
+  <header class="top">
+    <a class="top__logo" href="jogo.html">DATALAB</a>
+    <a class="back" href="jogo.html"><svg viewBox="0 0 9 15" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M6 0h3v3H6zM3 3h3v3H3zM0 6h3v3H0zM3 9h3v3H3zM6 12h3v3H6z"/></svg>Voltar ao jogo</a>
+  </header>
+
+  <main class="dl">
+    <section class="hero">
+      <div class="hero__copy">
+        <p class="eyebrow">Versão desktop<span id="ver"></span></p>
+        <h1 class="h1">Leve o datacenter pro seu computador</h1>
+        <div class="copy">
+          <p>Instale o DataLab no <strong>Windows</strong> ou no <strong>macOS</strong> e jogue num app próprio, com ícone na área de trabalho e sem abas do navegador.</p>
+          <p>É a mesma conta: o seu datacenter, a equipe e o inventário continuam onde você parou.</p>
+        </div>
+      </div>
+
+      <figure class="stage panel">
+        <div class="bar"><span>Emote <b id="emNum">1/5</b></span><span class="live" id="emName">Acenando</span></div>
+        <div class="stage__view">
+          <p class="bubble" id="bubble" aria-hidden="true">👋</p>
+          <canvas class="stage__hero" id="hero" width="32" height="50" role="img" aria-label="Personagem do DataLab fazendo emotes"></canvas>
+          <div class="stage__floor" aria-hidden="true"></div>
+        </div>
+        <figcaption class="stage__cap"><span class="k">Clique no personagem ou use <kbd>1</kbd>–<kbd>5</kbd></span><span class="t">Toque no personagem para trocar</span></figcaption>
+      </figure>
+    </section>
+
+    <!-- shown without a game session: this page is opened from inside the game -->
+    <section class="gate panel" id="gate" hidden>
+      <div class="bar"><span>Acesso</span><span class="live live--warn"><i class="led"></i>Sem login</span></div>
+      <div class="gate__body">
+        <p class="copy">Os instaladores ficam dentro do jogo. Entre com a sua conta e abra <strong>Jogo → Baixar para PC</strong>.</p>
+        <a class="pxbtn" href="jogo.html">Entrar no jogo<svg viewBox="0 0 9 15" shape-rendering="crispEdges" aria-hidden="true"><path fill="currentColor" d="M0 0h3v3H0zM3 3h3v3H3zM6 6h3v3H6zM3 9h3v3H3zM0 12h3v3H0z"/></svg></a>
+      </div>
+    </section>
+
+    <section class="get" id="get" aria-labelledby="getTitle">
+      <h2 class="eyebrow" id="getTitle">Escolha o seu sistema</h2>
+      <p class="phone-note copy" id="phoneNote" hidden>Os instaladores são para computador. Abra esta página no seu PC ou Mac.</p>
+      <ul class="os">
+        <li class="os__card panel" data-os="windows">
+          <div class="bar"><span>Windows</span><span class="mine" hidden>Seu sistema</span></div>
+          <div class="os__body">
+            <svg class="os__icon" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+              <path fill="#05070d" d="M1 2h14v10H1zM6 12h4v2H6zM3 14h10v1H3z"/>
+              <path fill="#46506b" d="M2 3h12v8H2zM7 12h2v2H7zM4 14h8v1H4z"/>
+              <path fill="#141b2d" d="M3 4h10v6H3z"/>
+              <path fill="#3dffa2" d="M4 5h3v2H4zM8 5h4v2H8zM4 8h3v1H4zM8 8h4v1H8z"/>
+            </svg>
+            <dl class="spec">
+              <div><dt>Arquivo</dt><dd>Instalador .exe</dd></div>
+              <div><dt>Versão</dt><dd data-ver>—</dd></div>
+            </dl>
+            <a class="pxbtn os__get" data-get="windows" href="#" aria-disabled="true">Em breve</a>
+          </div>
+          <ol class="how">
+            <li>Baixe o instalador <b>.exe</b>.</li>
+            <li>Abra o arquivo e siga os passos do instalador.</li>
+            <li>Abra o DataLab pelo menu Iniciar e entre com a sua conta.</li>
+          </ol>
+        </li>
+        <li class="os__card panel" data-os="mac">
+          <div class="bar"><span>macOS</span><span class="mine" hidden>Seu sistema</span></div>
+          <div class="os__body">
+            <svg class="os__icon" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+              <path fill="#05070d" d="M2 2h12v9H2zM0 11h16v3H0z"/>
+              <path fill="#46506b" d="M3 3h10v7H3zM1 12h14v1H1z"/>
+              <path fill="#808ba6" d="M6 12h4v1H6z"/>
+              <path fill="#141b2d" d="M4 4h8v5H4z"/>
+              <path fill="#ffb547" d="M5 5h2v1H5z"/>
+              <path fill="#3dffa2" d="M5 7h6v1H5zM8 5h3v1H8z"/>
+            </svg>
+            <dl class="spec">
+              <div><dt>Arquivo</dt><dd>Imagem de disco .dmg</dd></div>
+              <div><dt>Versão</dt><dd data-ver>—</dd></div>
+            </dl>
+            <a class="pxbtn os__get" data-get="mac" href="#" aria-disabled="true">Em breve</a>
+          </div>
+          <ol class="how">
+            <li>Baixe o arquivo <b>.dmg</b>.</li>
+            <li>Abra o arquivo e arraste o DataLab para <b>Aplicativos</b>.</li>
+            <li>Abra o DataLab pelo Launchpad e entre com a sua conta.</li>
+          </ol>
+        </li>
+      </ul>
+      <p class="soon copy" id="soon" hidden>Os instaladores estão sendo preparados. Enquanto isso, continue jogando no navegador.</p>
+    </section>
+  </main>
+
+  <p class="page-foot">DataLab · v0.9 · acesso antecipado</p>
+  <div class="crt" aria-hidden="true"></div>
+
+  <script src="assets/js/supabase/config.js"></script>
+  <script src="assets/js/sprites.js"></script>
+  <script src="assets/js/emotes.js"></script>
+  <script src="assets/js/dc-backdrop.js"></script>
+  <script src="assets/js/baixar.js"></script>
+</body>
+</html>

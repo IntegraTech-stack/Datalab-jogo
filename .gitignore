@@ -1,0 +1,38 @@
+# --- secrets / environment (never commit) ---
+.env
+.env.*
+!.env.example
+*.env
+supabase/.env
+supabase/.env.*
+!supabase/.env.example
+supabase/functions/.env
+supabase/functions/.env.*
+*.pem
+*.key
+service-account*.json
+secrets/
+
+# --- Supabase CLI local state ---
+supabase/.temp/
+supabase/.branches/
+supabase/volumes/
+
+# --- tooling / OS ---
+node_modules/
+.deno/
+deno.lock
+catalog-export.json
+.DS_Store
+Thumbs.db
+*.log
+
+# --- Agent Gateway (agents/): players' workspaces, task history, OpenCode's own home ---
+agents/data/
+agents/.env
+
+# --- desktop app (desktop/, Tauri): build output and the staged companion page ---
+desktop/src-tauri/target/
+desktop/src-tauri/gen/
+desktop/dist/
+desktop/out/

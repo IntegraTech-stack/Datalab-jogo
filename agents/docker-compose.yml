@@ -1,0 +1,32 @@
+# DataLab · Agent Gateway in a hardened container.
+#   cp .env.example .env   (fill SUPABASE_URL, SUPABASE_ANON_KEY, ALLOWED_ORIGINS, keys)
+#   docker compose up -d --build
+# Put a TLS reverse proxy (Caddy, nginx, Cloudflare Tunnel…) in front of 127.0.0.1:8787 and use its
+# https:// address as agentGatewayUrl in assets/js/supabase/config.js (and in jogo.html's CSP connect-src).
+services:
+  agents:
+    build: .
+    env_file: .env
+    environment:
+      HOST: 0.0.0.0
+      AGENT_DATA_DIR: /data
+      SANDBOX_TRUSTED: "1"
+    ports:
+      - "127.0.0.1:8787:8787"
+    volumes:
+      - agent-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 2g
+    cpus: 2
+    pids_limit: 256
+    ulimits:
+      nofile: 4096
+    restart: unless-stopped
+
+volumes:
+  agent-data: {}

@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coleção Criador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Silkscreen&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #060b16;
+    --panel: #0b1426;
+    --line: #1a2b4d;
+    --line-2: #26385c;
+    --ink: #dfe7f5;
+    --muted: #8797b0;
+    --turq: #2de2c8;
+    --gold: #f2c14e;
+    --creator: #ffb547;
+    --epic: #d8b4fe;
+    --shadow: #02050b;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--bg); color: var(--ink); font: 20px/1.15 'VT323', ui-monospace, monospace; padding: 28px 16px 48px; }
+  body::after { content: ''; position: fixed; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px); }
+  .wrap { max-width: 1180px; margin: 0 auto; }
+  canvas { display: block; image-rendering: pixelated; }
+  code { color: var(--ink); }
+
+  header { margin-bottom: 22px; }
+  .kicker { font: 11px 'Silkscreen', monospace; letter-spacing: .12em; color: var(--creator); text-transform: uppercase; margin: 0 0 10px; }
+  h1 { font: 22px/1.4 'Press Start 2P', monospace; margin: 0; text-shadow: 3px 3px 0 var(--shadow); }
+  h2 { font: 12px/1.5 'Press Start 2P', monospace; margin: 0; text-shadow: 2px 2px 0 var(--shadow); }
+  h3 { font: 11px/1.5 'Press Start 2P', monospace; margin: 0; }
+  .sub { color: var(--muted); margin: 8px 0 0; max-width: 72ch; }
+
+  .btn, .seg button { font: 11px 'Silkscreen', monospace; letter-spacing: .06em; text-transform: uppercase; background: var(--panel); color: var(--muted); border: 0; padding: 9px 12px; cursor: pointer; }
+  .seg { display: inline-flex; flex-wrap: wrap; border: 2px solid var(--line-2); box-shadow: 3px 3px 0 var(--shadow); }
+  .seg button + button { border-left: 2px solid var(--line-2); }
+  .seg button[aria-pressed="true"] { background: var(--turq); color: #04140f; }
+  .btn { border: 2px solid var(--line-2); box-shadow: 3px 3px 0 var(--shadow); color: var(--ink); }
+  .btn[aria-pressed="true"] { background: linear-gradient(180deg, #ffd78a, #f2a33a); color: #1a0d03; border-color: #1a0d03; }
+  .btn:active, .seg button:active { transform: translate(2px, 2px); }
+  .btn:focus-visible, .seg button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  .box { background: var(--panel); border: 2px solid var(--line-2); box-shadow: 5px 5px 0 var(--shadow); min-width: 0; }
+  .box__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; border-bottom: 2px solid var(--line-2); }
+  section { margin-top: 26px; }
+
+  /* the stage */
+  .stage { background: #050a14; overflow: hidden; }
+  .stage canvas { width: 100%; height: auto; }
+  .stage__bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; padding: 12px 14px; border-top: 2px solid var(--line-2); }
+  .now { font: 11px 'Silkscreen', monospace; color: var(--turq); letter-spacing: .08em; text-transform: uppercase; }
+
+  /* store cards, as in the game's shop (assets/css/store.css) */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 18px; }
+  .st-card { position: relative; border: 2px solid var(--line-2); outline: 2px solid rgba(255, 183, 77, 0.55); outline-offset: -2px; box-shadow: 3px 3px 0 #000; display: flex; flex-direction: column; }
+  .st-card.rar-legendary { background: linear-gradient(160deg, rgba(94, 234, 212, 0.22), rgba(71, 155, 255, 0.1) 40%, #070d1a 75%); box-shadow: 3px 3px 0 #000, 0 0 26px -8px var(--gold); }
+  .st-card.rar-epic { background: linear-gradient(160deg, rgba(192, 132, 252, 0.2), rgba(71, 155, 255, 0.06) 40%, #070d1a 75%); }
+  .st-card__art { position: relative; display: grid; place-items: center; padding: 30px 0 6px; }
+  .st-card__art canvas { width: 168px; height: 168px; }
+  .st-ev { position: absolute; right: 8px; top: 8px; padding: 4px 6px; font: 10px 'Silkscreen', monospace; letter-spacing: 1px; background: linear-gradient(180deg, #ffd78a, #f2a33a 55%, #c96a1c); color: #1a0d03; border: 2px solid #1a0d03; box-shadow: 2px 2px 0 #000, 0 0 10px rgba(255, 183, 77, 0.65); }
+  .st-card__body { display: flex; flex-direction: column; gap: 6px; padding: 8px 12px 0; }
+  .st-card__body b { font: 12px/1.5 'Press Start 2P', monospace; font-weight: 400; text-shadow: 2px 2px 0 var(--shadow); }
+  .rar-legendary .st-card__body b { color: var(--gold); }
+  .rar-epic .st-card__body b { color: var(--epic); }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .rar, .tag { font: 10px 'Silkscreen', monospace; letter-spacing: .06em; text-transform: uppercase; padding: 3px 6px; }
+  .rar-legendary .rar { background: rgba(242, 193, 78, 0.14); color: var(--gold); border: 1px solid rgba(242, 193, 78, 0.5); }
+  .rar-epic .rar { background: rgba(192, 132, 252, 0.14); color: var(--epic); border: 1px solid rgba(192, 132, 252, 0.5); }
+  .tag { background: linear-gradient(180deg, #ffd78a, #f2a33a); color: #1a0d03; border: 1px solid #1a0d03; }
+  .st-card__desc { margin: 2px 0 0; }
+  .st-card__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px 12px; margin-top: auto; }
+  .price { display: inline-flex; align-items: center; gap: 6px; font: 13px 'Press Start 2P', monospace; color: var(--gold); text-shadow: 2px 2px 0 var(--shadow); }
+  .price i { font-style: normal; color: #ffd27a; }
+  .incl { font: 10px 'Silkscreen', monospace; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+
+  /* one column per skin */
+  .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  @media (max-width: 900px) { .pair { grid-template-columns: minmax(0, 1fr); } }
+  .skin__head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .skin__head small { font: 10px 'Silkscreen', monospace; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  .anim { border-top: 2px solid var(--line-2); }
+  .anim:first-of-type { border-top: 0; }
+  .anim__title { padding: 12px 14px 0; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+  .anim__text { margin: 4px 14px 0; color: var(--muted); }
+  .anim__live { display: flex; justify-content: center; gap: 6px; padding: 12px 10px 6px; background: #070f1e; margin: 10px 14px 0; flex-wrap: wrap; }
+  .anim__live figure { margin: 0; display: grid; justify-items: center; gap: 4px; }
+  .anim__live figcaption, .frames span { font: 9px 'Silkscreen', monospace; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  .anim__live canvas { width: 66px; height: 93px; }
+  .anim__live--wide canvas { width: 102px; height: 93px; }
+  .frames { display: grid; gap: 6px; padding: 10px 14px 14px; }
+  .frames__row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .frames__row span { flex-basis: 100%; }
+  .frames canvas { background: #070f1e; border: 1px solid var(--line); width: 44px; height: 62px; }
+
+  /* the pixel grids */
+  .sheet { overflow-x: auto; padding: 14px; background: #050a14; }
+  .sheet canvas { max-width: none; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 12px 14px; border-top: 2px solid var(--line-2); }
+  .sw { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 18px; }
+  .sw i { width: 14px; height: 14px; border: 1px solid #000; box-shadow: 1px 1px 0 var(--shadow); }
+
+  .notes { padding: 12px 14px 14px; }
+  .notes ul { margin: 0; padding-left: 22px; color: var(--muted); }
+  .notes li { margin: 4px 0; }
+  @media (prefers-reduced-motion: reduce) { .btn:active, .seg button:active { transform: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="kicker">Loja · Personagem · Coleção Criador</p>
+    <h1>Dev Pierre, Dev Abner, Dev João Pedro &amp; Dev Tiago</h1>
+    <p class="sub">As skins dos quatro criadores do DataLab. Esta página roda o <code>sprites.js</code>, o <code>cosmetics.js</code> e o <code>emotes.js</code> do jogo, então o que aparece aqui é o que aparece no mapa: quadro de 22×31 px, contorno de 1 px.</p>
+  </header>
+
+  <div class="box">
+    <div class="box__head">
+      <h2>Girando nas 4 direções</h2>
+      <div class="seg" role="group" aria-label="Animação do palco">
+        <button type="button" data-mode="spin" aria-pressed="true">Parado</button>
+        <button type="button" data-mode="walk" aria-pressed="false">Andando</button>
+        <button type="button" data-mode="extra" aria-pressed="false">Selfie + sofá</button>
+      </div>
+    </div>
+    <div class="stage"><canvas id="stage" aria-label="Dev Pierre e Abner no datacenter"></canvas></div>
+    <div class="stage__bar">
+      <span class="now" id="now">Parados · de frente</span>
+      <span class="seg" role="group" aria-label="Acessórios">
+        <button type="button" class="btn" data-toggle="dev_pierre" aria-pressed="true">Óculos do Pierre: ligados</button>
+        <button type="button" class="btn" data-toggle="abner" aria-pressed="true">Relax do Abner: ligado</button>
+        <button type="button" class="btn" data-toggle="joao_pedro" aria-pressed="true">Notebook do JP: ligado</button>
+      </span>
+    </div>
+  </div>
+
+  <section>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="pair" id="skins"></section>
+
+  <section class="box">
+    <div class="box__head"><h2>No jogo</h2></div>
+    <div class="notes">
+      <ul>
+        <li><code>assets/js/cosmetics.js</code>: <code>dev_pierre</code> (lendária, 400 Gold, selo ★ CRIADOR), <code>gear_wayfarer</code> (épico, 90 Gold) e <code>abner</code> (lendária, 400 Gold, selo ★ CRIADOR), <code>gear_lounge</code> (pose, épico, 90 Gold), <code>joao_pedro</code> (lendária, 400 Gold, selo ★ CRIADOR), <code>gear_netbook</code> (mãos, épico, 90 Gold) e <code>tiago</code> (lendária, 400 Gold, selo ★ CRIADOR), com cabelos, roupas, tênis, pulsos e poses.</li>
+        <li><code>assets/js/sprites.js</code> + <code>scene.js</code>: o respiro parado das skins, os frames dos emotes (selfie, ping, firewall, bloqueio) e o frame sentado relaxado.</li>
+        <li><code>assets/js/demo.js</code>: o Abner senta relaxado nos sofás e pufes, e no chão quando fica 5 s parado encostado num rack.</li>
+        <li><code>assets/js/emotes.js</code>: emote Selfie na tecla 6 (Dev Pierre), Ping na 7 (João Pedro), Firewall na 8 e Bloqueio na 9 (Tiago).</li>
+        <li><code>assets/js/inventory.js</code> + <code>assets/css/store.css</code>: os selos no card e no detalhe da loja.</li>
+        <li><code>supabase/migrations/</code>: <code>20261106000300_dev_pierre.sql</code> e <code>20261106000400_abner.sql</code>, os itens no catálogo do servidor.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+<script src="assets/js/sprites.js"></script>
+<script src="assets/js/cosmetics.js"></script>
+<script src="assets/js/emotes.js"></script>
+<script>
+(function () {
+  'use strict';
+  const DL = window.DL, R = DL.R, CH = DL.CHAR, FW = CH.FW, FH = CH.FH, AX = CH.AX, AY = CH.AY;
+  const DIRS = ['down', 'right', 'up', 'left'];
+  const DIR_NAME = { down: 'de frente', right: 'direita', up: 'de costas', left: 'esquerda' };
+  const SELFIE = DL.emote('selfie');
+  const item = (id) => DL.COSMETICS.find((c) => c.id === id);
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const calm = matchMedia('(prefers-reduced-motion: reduce)');
+  // each skin's accessory: Pierre's wayfarers, Abner's Relax do Criador (on = equipped)
+  const S = { on: { dev_pierre: true, abner: true, joao_pedro: true }, mode: 'spin', t0: performance.now() };
+
+  // the player's own look under the skins (each costume replaces skin, hair, clothes and shoes)
+  const BASE = { body: 'm', skin: '#e0ac7e', hair: '#5a3a25', hairStyle: 'short', shirt: '#2f3a4d', pants: '#232a36', shoes: '#16181d' };
+  const D = DL.DEV, A = DL.ABN, J = DL.JP, T = DL.TG;
+  const EMO_FRAMES = { selfie: ['selfieA', 'selfieB'], ping: ['pingA', 'pingB'], firewall: ['fwA', 'fwB'], block: ['blockA', 'blockB'] };
+  const SKINS = [
+    {
+      id: 'dev_pierre', name: 'Dev Pierre', who: 'o criador', rarity: 'legendary', rarName: 'Lendário',
+      looks: { on: Object.assign({}, BASE, { outfit: 'dev_pierre', gear: { face: 'wayfarer' } }), off: Object.assign({}, BASE, { outfit: 'dev_pierre', gear: {} }) },
+      idleText: 'Mão direita no bolso, relógio branco no pulso esquerdo, respirando parado.',
+      extra: 'emote', emotes: ['selfie'], extraName: 'Selfie no espelho', extraText: 'Emote 6, vem com a skin: celular erguido, a outra mão no bolso, dois flashes.',
+      foot: '+ emote Selfie',
+      legend: [['Pele morena clara', D.skin], ['Cabelo preto', D.hair], ['Sobrancelha / bigode', D.brow], ['Camiseta preta', D.tee], ['Broche prateado', D.pin], ['Jogger preta', D.pants], ['Relógio branco', D.watch], ['Tênis azul', D.shoe], ['Sola branca', D.sole], ['Lente dos óculos', D.lens]],
+    },
+    {
+      id: 'abner', name: 'Dev Abner', who: 'o criador', rarity: 'legendary', rarName: 'Lendário',
+      looks: { on: Object.assign({}, BASE, { outfit: 'abner', gear: { pose: 'lounge' } }), off: Object.assign({}, BASE, { outfit: 'abner', gear: {} }) },
+      idleText: 'Pensativo: a mão sob o queixo, balançando de leve. Pulseira azul na direita, relógio escuro na esquerda.',
+      extra: 'lounge', extraName: 'Sentado relaxado', extraText: 'Acessório Relax do Criador: pernas abertas, uma mão no joelho, o outro braço no encosto. No jogo: nos sofás e pufes, e no chão encostado num rack. Desligado, ele fica em pé.',
+      foot: 'streetwear',
+      legend: [['Pele clara', A.skin], ['Cachos castanho-escuros', A.hair], ['Camiseta preta', A.tee], ['Cargo oliva', A.camo], ['Camuflado marrom', A.camoB], ['Camuflado preto', A.camoK], ['Pulseira azul', A.band], ['Relógio escuro', A.watch], ['Cano alto preto', A.shoe], ['Azul royal', A.blue], ['Sola branca', A.sole]],
+    },
+    {
+      id: 'joao_pedro', name: 'Dev João Pedro', who: 'o criador · redes', rarity: 'legendary', rarName: 'Lendário',
+      looks: { on: Object.assign({}, BASE, { outfit: 'joao_pedro', gear: { hands: 'netbook' } }), off: Object.assign({}, BASE, { outfit: 'joao_pedro', gear: {} }) },
+      idleText: 'Sem o notebook: braços cruzados e sorriso de canto. Com o Notebook de Redes: abre na frente do peito e o código verde rola na tela. Andando, vai fechado debaixo do braço.',
+      extra: 'emote', emotes: ['ping'], extraName: 'Ping', extraText: 'Emote 7, vem com a skin: digita rápido no notebook, os pacotes saem verdes e voltam azuis, 64 bytes em 1 ms.',
+      foot: '+ emote Ping',
+      legend: [['Pele morena clara', J.skin], ['Cabelo escuro', J.hair], ['Barba', J.beard], ['Boné azul-marinho', J.cap], ['Tricô preto', J.knit], ['Calça grafite', J.pants], ['Relógio escuro', J.watch], ['Tênis cinza', J.shoe], ['Sola branca', J.sole], ['Código verde', J.code]],
+    },
+    {
+      id: 'tiago', name: 'Dev Tiago', who: 'o criador · cyber security', rarity: 'legendary', rarName: 'Lendário',
+      looks: { on: Object.assign({}, BASE, { outfit: 'tiago', gear: {} }) },
+      idleText: 'Braços cruzados, olhando de lado para o cadeado holográfico que gira e flutua ao lado dele.',
+      extra: 'emote', emotes: ['firewall', 'block'], extraName: 'Firewall e Bloqueio', extraText: 'Emotes 8 e 9, vêm com a skin: digita num terminal flutuante e um escudo de firewall sobe na frente dele; um pacote invasor vermelho chega e ele bloqueia com a palma.',
+      foot: '+ emotes 8 e 9',
+      legend: [['Pele clara', T.skin], ['Cabelo castanho-escuro', T.hair], ['Camisa azul-marinho', T.jersey], ['Gola e faixas vermelhas', T.red], ['Ombro amarelo', T.yellow], ['Escudo prateado', T.silver], ['Calça preta', T.pants], ['Tênis escuro', T.shoe], ['Cadeado holográfico', T.holo]],
+    },
+  ];
+  for (const s of SKINS) {
+    s.item = item(s.id);
+    s.sheets = {}; s.emo = {}; s.sits = {};
+    for (const k of Object.keys(s.looks)) { s.sheets[k] = DL.makeSheet(s.looks[k]); s.emo[k] = DL.makeEmoteSheet(s.looks[k]); }
+  }
+  const key = (s) => (s.looks.off && !S.on[s.id] ? 'off' : 'on');
+  // the relaxed frame, or standing when the accessory is off
+  const seated = (s, d, t) => sheet(s)[d].lounge || null;
+  const sheet = (s) => s.sheets[key(s)];
+  const look = (s) => s.looks[key(s)];
+  const idleFrame = (sh, dir, t) => (t % 3.1 < 0.13 ? sh[dir].blink : sh[dir].sway && DL.idleSway(t) ? sh[dir].sway : sh[dir].idle);
+  const actor = (s, x, y, img, dir, moving, emote) => ({ x, y, frame: () => img, look: look(s), dir, moving, seated: false, bubble: emote ? { tone: 'emote' } : null });
+
+  function setup(cv, w, h, k) {
+    if (cv.width !== w * k) { cv.width = w * k; cv.height = h * k; }
+    const g = cv.getContext('2d');
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, cv.width, cv.height);
+    g.imageSmoothingEnabled = false;
+    g.setTransform(k, 0, 0, k, 0, 0);
+    return g;
+  }
+
+  /* ---------------- the stage: a corner of the datacenter ---------------- */
+  const SW = 242, SH = 78, stage = document.getElementById('stage');
+  function rack(g, x, y, t, seed) {
+    R(g, x, y, 16, 30, '#121826'); R(g, x, y, 16, 1, '#26324a'); R(g, x, y, 1, 30, '#1c2538'); R(g, x + 15, y, 1, 30, '#0a0e17');
+    for (let i = 0; i < 6; i++) {
+      const uy = y + 3 + i * 4;
+      R(g, x + 2, uy, 12, 3, '#0b101b'); R(g, x + 2, uy, 12, 1, '#1a2336');
+      const on = DL.hash(Math.floor(t * (5 + (i % 3))) * 31 + seed * 7 + i) > 0.35;
+      R(g, x + 3, uy + 1, 1, 1, '#7ee0a1'); R(g, x + 5, uy + 1, 1, 1, on ? '#a0c3ec' : '#24384f');
+      if (i === 2 + (seed % 3)) R(g, x + 7, uy + 1, 1, 1, DL.blink(t, 1.3, seed) ? '#ff7a17' : '#4a210a');
+    }
+  }
+  // the shop's navy sofa, front view (two seats, turquoise and blue cushions)
+  function sofa(g, x, y) {
+    R(g, x, y, 30, 10, '#132443'); R(g, x, y, 30, 1, '#22375e');
+    R(g, x + 2, y + 1, 12, 7, '#2de2c8'); R(g, x + 16, y + 1, 12, 7, '#3d7bd9'); R(g, x + 2, y + 1, 12, 1, '#a5f7ea'); R(g, x + 16, y + 1, 12, 1, '#7fb2f0');
+    R(g, x - 2, y + 6, 34, 8, '#0f1d38'); R(g, x - 2, y + 6, 34, 1, '#22375e');
+    R(g, x - 3, y + 3, 4, 11, '#0b1730'); R(g, x + 29, y + 3, 4, 11, '#0b1730');
+    R(g, x - 1, y + 14, 2, 2, '#05080f'); R(g, x + 29, y + 14, 2, 2, '#05080f');
+  }
+  function backdrop(g, t, withSofa) {
+    R(g, 0, 0, SW, SH, '#050a14');
+    R(g, 0, 0, SW, 36, '#08101f'); R(g, 0, 34, SW, 2, '#0b1730');
+    R(g, 0, 6, SW, 1, 'rgba(45,226,200,' + (0.35 + 0.15 * Math.sin(t * 1.4)).toFixed(2) + ')');
+    rack(g, 4, 6, t, 1); rack(g, 22, 6, t, 2); rack(g, 204, 6, t, 3); rack(g, 222, 6, t, 4);
+    R(g, 0, 36, SW, SH - 36, '#070d1a');
+    g.fillStyle = '#0d1a30';
+    for (let i = -10; i < 24; i++) for (let s = 0; s < 44; s++) {
+      const y = 36 + s, x = i * 16 + s * 2, x2 = i * 16 - s * 2 + 40;
+      if (y >= SH) continue;
+      if (x >= 0 && x < SW) g.fillRect(x, y, 1, 1);
+      if (x2 >= 0 && x2 < SW) g.fillRect(x2, y, 1, 1);
+    }
+    for (const [cx, c] of [[52, 'rgba(255,181,71,0.10)'], [98, 'rgba(242,193,78,0.08)'], [144, 'rgba(57,255,20,0.06)'], [190, 'rgba(45,226,200,0.07)']]) { g.fillStyle = c; g.beginPath(); g.ellipse(cx, 68, 18, 5, 0, 0, Math.PI * 2); g.fill(); }
+    if (withSofa) sofa(g, 84, 46);
+  }
+  function bubble(g, x, y, text) {
+    R(g, x - 7, y - 9, 14, 9, '#f1f1ee'); R(g, x - 6, y - 10, 12, 1, '#f1f1ee'); R(g, x - 6, y, 12, 1, '#f1f1ee'); R(g, x - 1, y + 1, 2, 1, '#f1f1ee');
+    g.font = '7px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, x, y - 4);
+  }
+  const now = document.getElementById('now');
+  let nowText = '';
+  function drawStage(t) {
+    const k = Math.max(2, Math.floor((stage.parentElement.clientWidth || 600) * (devicePixelRatio || 1) / SW));
+    const g = setup(stage, SW, SH, k), [P, AB, JP, TG] = SKINS, PX = 52, AXS = 98, JX = 144, TX = 190, Y = 68;
+    backdrop(g, t, S.mode === 'extra');
+    let label;
+    if (S.mode === 'extra') {
+      // Pierre: the selfie on a loop · Abner: on the sofa, sat back
+      const loop = SELFIE.dur + 0.9, et = t % loop, on = et < SELFIE.dur;
+      const img = on ? DL.emoteFrame(P.emo[key(P)], 'selfie', et, SELFIE.dur) : idleFrame(sheet(P), 'down', t);
+      DL.drawActor(g, actor(P, PX, Y, img, 'down', false, on), k);
+      if (on) { DL.emoteFx(g, 'selfie', PX, Y, et, SELFIE.dur, img); bubble(g, PX - 9, Y - 33, '🤳'); }
+      const sit = seated(AB, 'down');
+      if (sit) DL.drawActor(g, Object.assign(actor(AB, AXS + 1, Y - 6, sit, 'down', false, false), { noShadow: true }), k);
+      else DL.drawActor(g, actor(AB, AXS + 1, Y + 2, idleFrame(sheet(AB), 'down', t), 'down', false, false), k);
+      // João Pedro: the Ping on a loop
+      const PING = DL.emote('ping'), pl = PING.dur + 0.9, pt = (t + 0.7) % pl, pon = pt < PING.dur;
+      const pimg = pon ? DL.emoteFrame(JP.emo[key(JP)], 'ping', pt, PING.dur) : idleFrame(sheet(JP), 'down', t);
+      DL.drawActor(g, actor(JP, JX, Y, pimg, 'down', false, pon), k);
+      if (pon) { DL.emoteFx(g, 'ping', JX, Y, pt, PING.dur, pimg); bubble(g, JX - 9, Y - 33, pt > PING.dur - 1.2 ? '✓' : '📡'); }
+      // Tiago: Firewall, then Bloqueio, on a loop
+      const FW = DL.emote('firewall'), BL = DL.emote('block'), tl = FW.dur + BL.dur + 1.4, tt = (t + 0.3) % tl;
+      const tem = tt < FW.dur ? FW : tt > FW.dur + 0.7 && tt < FW.dur + 0.7 + BL.dur ? BL : null, tet = tem === FW ? tt : tt - FW.dur - 0.7;
+      const timg = tem ? DL.emoteFrame(TG.emo[key(TG)], tem.id, tet, tem.dur) : idleFrame(sheet(TG), 'down', t);
+      DL.drawActor(g, actor(TG, TX, Y, timg, 'down', false, !!tem), k);
+      if (tem) { DL.emoteFx(g, tem.id, TX, Y, tet, tem.dur, timg); bubble(g, TX - 9, Y - 33, tem.emoji); }
+      label = 'Pierre: selfie · Abner: no sofá · JP: ping · Tiago: firewall e bloqueio';
+    } else {
+      const walk = S.mode === 'walk', dir = DIRS[Math.floor(t / (walk ? 2.4 : 1.6)) % 4];
+      for (const [s, x, ph] of [[P, PX, 0], [AB, AXS, 0.5], [JP, JX, 1], [TG, TX, 1.5]]) {
+        const sh = sheet(s), img = walk ? sh[dir].walk[Math.floor(t * 7) % 4] : idleFrame(sh, dir, t + ph);
+        DL.drawActor(g, actor(s, x, Y, img, dir, walk, false), k);
+      }
+      label = (walk ? 'Andando · ' : 'Parados · ') + DIR_NAME[dir];
+    }
+    if (label !== nowText) { nowText = label; now.textContent = label; }
+  }
+
+  /* ---------------- shop cards ---------------- */
+  const cards = [
+    { s: SKINS[0], it: SKINS[0].item }, { s: SKINS[1], it: SKINS[1].item },
+    { s: SKINS[0], it: item('gear_wayfarer'), head: true },
+    { s: SKINS[2], it: SKINS[2].item },
+    { s: SKINS[3], it: SKINS[3].item },
+    { s: SKINS[1], it: item('gear_lounge'), pose: true },
+    { s: SKINS[2], it: item('gear_netbook'), hands: true },
+  ];
+  document.getElementById('cards').innerHTML = cards.map((c, i) => {
+    const it = c.it;
+    return '<article class="st-card rar-' + it.rarity + '" aria-label="Card da loja: ' + esc(it.name) + '">' +
+      '<div class="st-card__art"><canvas data-card="' + i + '" aria-hidden="true"></canvas><span class="st-ev">★ CRIADOR</span></div>' +
+      '<div class="st-card__body"><b>' + esc(it.name) + '</b><div class="tags"><span class="rar">' + DL.RARITY[it.rarity].name + '</span><span class="tag">★ Criador</span>' + (c.head || c.pose || c.hands ? '<span class="incl">Acessório · ' + (c.head ? 'Rosto' : c.pose ? 'Pose' : 'Mãos') + '</span>' : '') + '</div>' +
+      '<p class="st-card__desc">' + esc(it.desc) + '</p></div>' +
+      '<div class="st-card__foot"><span class="price"><i>⬢</i>' + it.price + '</span><span class="incl">' + (c.head || c.pose || c.hands ? 'põe e tira' : esc(c.s.foot)) + '</span></div></article>';
+  }).join('');
+  const cardCv = [...document.querySelectorAll('[data-card]')];
+  function drawCards(t) {
+    cards.forEach((c, i) => {
+      if (c.head) {
+        // the glasses' card: the head close up, always wearing them
+        const g = setup(cardCv[i], 24, 24, 7), head = idleFrame(c.s.sheets.on, 'down', t);
+        g.drawImage(head, 0, 0, FW, 18, 1, 4, FW, 18);
+        const a = { x: 12, y: 4 + AY, frame: () => head, look: c.s.looks.on, dir: 'down', moving: false, seated: false, noShadow: true };
+        DL.charFx(g, a, a.x, a.y, t);
+        return;
+      }
+      const g = setup(cardCv[i], 48, 48, 4), dir = DIRS[Math.floor(t / 1.4) % 4];
+      // the pose's card: Abner sitting back, turning around, always wearing it
+      // the notebook's card: João Pedro holding it open, code running
+      if (c.hands) { const a = actor(c.s, 24, 42, idleFrame(c.s.sheets.on, 'down', t), 'down', false, false); a.look = c.s.looks.on; DL.drawActor(g, a, 4); return; }
+      if (c.pose) { DL.drawActor(g, Object.assign(actor(c.s, 24, 42, c.s.sheets.on[dir].lounge, dir, false, false), { noShadow: true }), 4); return; }
+      DL.drawActor(g, actor(c.s, 24, 42, idleFrame(sheet(c.s), dir, t), dir, false, false), 4);
+    });
+  }
+
+  /* ---------------- one column per skin: animations + pixel grid ---------------- */
+  const host = document.getElementById('skins');
+  function mkCanvas(parent, caption, w, h) {
+    const f = document.createElement('figure'), c = document.createElement('canvas');
+    c.width = w; c.height = h; f.appendChild(c);
+    if (caption) { const fc = document.createElement('figcaption'); fc.textContent = caption; f.appendChild(fc); }
+    parent.appendChild(f);
+    return c;
+  }
+  for (const s of SKINS) {
+    const col = document.createElement('div');
+    col.className = 'box';
+    col.innerHTML =
+      '<div class="box__head"><div class="skin__head"><h2>' + esc(s.name) + '</h2><small>' + esc(s.who) + ' · ' + s.rarName + '</small></div></div>' +
+      '<div class="anim"><div class="anim__title"><h3>Idle</h3></div><p class="anim__text">' + esc(s.idleText) + '</p><div class="anim__live" data-live="idle"></div><div class="frames" data-frames="idle"></div></div>' +
+      '<div class="anim"><div class="anim__title"><h3>Andando</h3></div><p class="anim__text">Ciclo de 4 frames nas 4 direções: passo, meio, passo, meio.</p><div class="anim__live" data-live="walk"></div><div class="frames" data-frames="walk"></div></div>' +
+      '<div class="anim"><div class="anim__title"><h3>' + esc(s.extraName) + '</h3></div><p class="anim__text">' + esc(s.extraText) + '</p><div class="anim__live' + (s.extra === 'lounge' ? ' anim__live--wide' : '') + '" data-live="extra"></div><div class="frames" data-frames="extra"></div></div>' +
+      '<div class="anim"><div class="box__head"><h3>Grade de pixels</h3><div class="seg" role="group" aria-label="Baixar o sprite de ' + esc(s.name) + '"><button type="button" data-dl="svg">Baixar SVG</button><button type="button" data-dl="png">Baixar PNG</button></div></div>' +
+      '<div class="sheet"><canvas data-sheet aria-label="Frames de ' + esc(s.name) + ' numa grade de pixels"></canvas></div>' +
+      '<div class="legend">' + s.legend.map(([n, c]) => '<span class="sw"><i style="background:' + c + '"></i>' + esc(n) + '</span>').join('') + '</div></div>';
+    host.appendChild(col);
+    s.col = col;
+    s.live = { idle: {}, walk: {}, extra: [] };
+    for (const d of DIRS) s.live.idle[d] = mkCanvas(col.querySelector('[data-live=idle]'), DIR_NAME[d], FW * 3, FH * 3);
+    for (const d of DIRS) s.live.walk[d] = mkCanvas(col.querySelector('[data-live=walk]'), DIR_NAME[d], FW * 3, FH * 3);
+    const ex = col.querySelector('[data-live=extra]');
+    if (s.extra === 'emote') for (const e of s.emotes) s.live.extra.push(Object.assign(mkCanvas(ex, s.emotes.length > 1 ? DL.emote(e).name + ' · tecla ' + DL.emote(e).key : '', 40 * 4, 40 * 4), { em: e }));
+    else for (const d of ['down', 'right', 'left']) s.live.extra.push(Object.assign(mkCanvas(ex, d === 'down' ? 'no sofá' : 'no rack · ' + DIR_NAME[d], 34 * 3, 31 * 3), { face: d }));
+    if (s.extra === 'emote') ex.querySelectorAll('canvas').forEach((cv) => (cv.style.cssText = 'width:160px;height:160px'));
+    col.querySelector('[data-dl=svg]').addEventListener('click', () => download(s.id + (key(s) === 'off' ? '-sem-oculos' : '') + '.svg', URL.createObjectURL(new Blob([toSvg(s)], { type: 'image/svg+xml' }))));
+    col.querySelector('[data-dl=png]').addEventListener('click', () => download(s.id + (key(s) === 'off' ? '-sem-oculos' : '') + '.png', flat(s).toDataURL('image/png')));
+  }
+
+  function drawLive(t) {
+    for (const s of SKINS) {
+      const sh = sheet(s);
+      for (const d of DIRS) {
+        let g = setup(s.live.idle[d], FW, FH, 3);
+        DL.drawActor(g, actor(s, AX, AY, idleFrame(sh, d, t + DIRS.indexOf(d) * 0.4), d, false, false), 3);
+        g = setup(s.live.walk[d], FW, FH, 3);
+        DL.drawActor(g, actor(s, AX, AY, sh[d].walk[Math.floor(t * 7) % 4], d, true, false), 3);
+      }
+      if (s.extra === 'emote') {
+        for (const cv of s.live.extra) {
+          const em = DL.emote(cv.em), g = setup(cv, 40, 40, 4), loop = em.dur + 0.6, et = t % loop, X = 17, Y = 38;
+          const on = et < em.dur, img = on ? DL.emoteFrame(s.emo[key(s)], cv.em, et, em.dur) : idleFrame(sh, 'down', t);
+          DL.drawActor(g, actor(s, X, Y, img, 'down', false, on), 4);
+          if (on) DL.emoteFx(g, cv.em, X, Y, et, em.dur, img);
+        }
+      } else {
+        for (const cv of s.live.extra) {
+          const g = setup(cv, 34, 31, 3), d = cv.face;
+          const sit = seated(s, d);
+          if (d === 'down') { sofa(g, 2, 9); if (sit) DL.drawActor(g, Object.assign(actor(s, 17, 25, sit, 'down', false, false), { noShadow: true }), 3); else DL.drawActor(g, actor(s, 17, 30, idleFrame(sh, 'down', t), 'down', false, false), 3); }
+          else { rack(g, d === 'right' ? 1 : 17, 0, t, d === 'right' ? 2 : 5); R(g, 0, 29, 34, 2, '#0b1730'); DL.drawActor(g, actor(s, 17, 29, sit || idleFrame(sh, d, t), d, false, false), 3); }
+        }
+      }
+    }
+  }
+
+  function stills() {
+    for (const s of SKINS) {
+      const sh = sheet(s), em = s.emo[key(s)];
+      const row = (host, label, imgs) => {
+        const r = document.createElement('div'); r.className = 'frames__row';
+        const sp = document.createElement('span'); sp.textContent = label; r.appendChild(sp);
+        for (const img of imgs) { const c = document.createElement('canvas'); c.width = FW; c.height = FH; c.getContext('2d').drawImage(img, 0, 0); r.appendChild(c); }
+        host.appendChild(r);
+      };
+      const fi = s.col.querySelector('[data-frames=idle]'), fw = s.col.querySelector('[data-frames=walk]'), fx = s.col.querySelector('[data-frames=extra]');
+      fi.innerHTML = fw.innerHTML = fx.innerHTML = '';
+      row(fi, 'parado · respiro · piscando', [sh.down.idle, sh.down.sway, sh.down.blink, sh.right.idle, sh.right.sway, sh.up.idle, sh.up.sway]);
+      row(fw, 'de frente · direita', sh.down.walk.concat(sh.right.walk));
+      row(fw, 'de costas · esquerda', sh.up.walk.concat(sh.left.walk));
+      if (s.extra === 'emote') for (const e of s.emotes) row(fx, DL.emote(e).name, EMO_FRAMES[e].map((k) => em[k]));
+      else row(fx, sh.down.lounge ? 'de frente · direita · de costas · esquerda' : 'acessório desligado: em pé', DIRS.map((d) => sh[d].lounge || sh[d].idle));
+      drawSheet(s);
+    }
+  }
+
+  /* ---------------- pixel grids + downloads ---------------- */
+  const COLS = ['parado', 'respiro', 'passo 1', 'passo 2', 'passo 3', 'passo 4'];
+  function sheetRows(s) {
+    const sh = sheet(s), em = s.emo[key(s)], rows = [];
+    for (const d of DIRS) rows.push({ name: DIR_NAME[d], frames: [sh[d].idle, sh[d].sway].concat(sh[d].walk) });
+    rows.push(s.extra === 'emote' ? { name: s.emotes.map((e) => DL.emote(e).name.toLowerCase()).join(' · '), frames: [].concat(...s.emotes.map((e) => EMO_FRAMES[e].map((k) => em[k]))).concat(sh.down.blink).slice(0, COLS.length) } : { name: sh.down.lounge ? 'sentado' : 'em pé', frames: DIRS.map((d) => sh[d].lounge || sh[d].idle).concat(sh.down.blink) });
+    return rows;
+  }
+  function flat(s) {
+    const rows = sheetRows(s), W = COLS.length * (FW + 1) - 1, H = rows.length * (FH + 1) - 1;
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    rows.forEach((r, j) => r.frames.forEach((img, i) => g.drawImage(img, i * (FW + 1), j * (FH + 1))));
+    return c;
+  }
+  function drawSheet(s) {
+    const cv = s.col.querySelector('[data-sheet]'), src = flat(s), k = 5, padL = 62, padT = 16, rows = sheetRows(s);
+    cv.width = src.width * k + padL; cv.height = src.height * k + padT; cv.style.width = cv.width + 'px';
+    const g = cv.getContext('2d');
+    g.imageSmoothingEnabled = false;
+    g.fillStyle = '#050a14'; g.fillRect(0, 0, cv.width, cv.height);
+    rows.forEach((r, j) => r.frames.forEach((_, i) => {
+      const ox = padL + i * (FW + 1) * k, oy = padT + j * (FH + 1) * k;
+      for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++) { g.fillStyle = (x + y) % 2 ? '#0a1222' : '#0d1729'; g.fillRect(ox + x * k, oy + y * k, k, k); }
+    }));
+    g.drawImage(src, padL, padT, src.width * k, src.height * k);
+    g.fillStyle = 'rgba(5,10,20,0.55)';
+    for (let x = 0; x <= src.width; x++) g.fillRect(padL + x * k, padT, 1, src.height * k);
+    for (let y = 0; y <= src.height; y++) g.fillRect(padL, padT + y * k, src.width * k, 1);
+    g.font = '10px Silkscreen, monospace'; g.fillStyle = '#8797b0'; g.textBaseline = 'middle';
+    rows.forEach((r, j) => g.fillText(r.name, 4, padT + j * (FH + 1) * k + FH * k / 2));
+    g.textBaseline = 'top';
+    COLS.forEach((n, i) => g.fillText(n, padL + i * (FW + 1) * k + 2, 2));
+  }
+  function download(name, href) { const a = document.createElement('a'); a.href = href; a.download = name; document.body.appendChild(a); a.click(); a.remove(); }
+  function toSvg(s) {
+    // one <rect> per run of same-colour pixels in a row
+    const c = flat(s), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data, out = [];
+    const hex = (i) => '#' + [d[i], d[i + 1], d[i + 2]].map((v) => v.toString(16).padStart(2, '0')).join('');
+    for (let y = 0; y < c.height; y++) {
+      let x = 0;
+      while (x < c.width) {
+        const i = (y * c.width + x) * 4;
+        if (!d[i + 3]) { x++; continue; }
+        let n = 1;
+        while (x + n < c.width) { const j = i + n * 4; if (d[j] !== d[i] || d[j + 1] !== d[i + 1] || d[j + 2] !== d[i + 2] || d[j + 3] !== d[i + 3]) break; n++; }
+        out.push('<rect x="' + x + '" y="' + y + '" width="' + n + '" height="1" fill="' + hex(i) + '"' + (d[i + 3] < 255 ? ' fill-opacity="' + (d[i + 3] / 255).toFixed(2) + '"' : '') + '/>');
+        x += n;
+      }
+    }
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + c.width + ' ' + c.height + '" width="' + c.width * 8 + '" height="' + c.height * 8 + '" shape-rendering="crispEdges">\n<title>' + s.name + ' · DataLab</title>\n' + out.join('\n') + '\n</svg>\n';
+  }
+
+  /* ---------------- controls + loop ---------------- */
+  document.querySelectorAll('[data-mode]').forEach((b) => b.addEventListener('click', () => {
+    S.mode = b.dataset.mode;
+    document.querySelectorAll('[data-mode]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+    S.t0 = performance.now();
+  }));
+  document.querySelectorAll('[data-toggle]').forEach((b) => b.addEventListener('click', () => {
+    const id = b.dataset.toggle, on = (S.on[id] = !S.on[id]);
+    b.setAttribute('aria-pressed', String(on));
+    b.textContent = id === 'abner' ? 'Relax do Abner: ' + (on ? 'ligado' : 'desligado') : id === 'joao_pedro' ? 'Notebook do JP: ' + (on ? 'ligado' : 'desligado') : 'Óculos do Pierre: ' + (on ? 'ligados' : 'desligados');
+    stills();
+  }));
+
+  function frame(ts) {
+    const t = Math.max(0, (ts - S.t0) / 1000);
+    drawStage(t); drawCards(t); drawLive(t);
+    if (!calm.matches) requestAnimationFrame(frame);
+  }
+  stills();
+  requestAnimationFrame(frame);
+  addEventListener('resize', () => { if (calm.matches) requestAnimationFrame(frame); });
+  if (calm.addEventListener) calm.addEventListener('change', () => { if (!calm.matches) requestAnimationFrame(frame); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>DataLab · prévia das notificações</title>
+  <!-- Page to see the in-game notifications (toasts) with the game's own CSS, without logging in.
+       The map is a stand-in (grid); the toasts, the minimap box and the team chat use the real classes. -->
+  <link rel="stylesheet" href="assets/css/base.css">
+  <link rel="stylesheet" href="assets/css/demo.css">
+  <style>
+    .game { background:
+      repeating-linear-gradient(30deg, rgba(126, 240, 170, 0.06) 0 1px, transparent 1px 34px),
+      repeating-linear-gradient(-30deg, rgba(126, 240, 170, 0.06) 0 1px, transparent 1px 34px),
+      radial-gradient(70% 60% at 50% 50%, #0d1f1b, #060709); }
+    .fake-hud { position: absolute; top: 0; left: 0; right: 0; height: 56px; display: flex; align-items: center; gap: 12px; padding: 0 24px; border-bottom: 1px solid var(--hairline); background: rgba(10, 10, 11, 0.7); font: 400 12px/1 var(--font-mono); letter-spacing: 1px; color: var(--mute); text-transform: uppercase; }
+    .fake-hud b { color: #7ef0aa; font-weight: 400; }
+    .minimap { width: 196px; height: 136px; }
+    .team-chat { height: 150px; padding: 10px 12px; font-size: 13px; color: var(--mute); }
+    .rack { position: absolute; width: 46px; height: 74px; border: 2px solid #1f6f5c; background: linear-gradient(#10261f, #0a1714); box-shadow: 0 0 18px rgba(5, 181, 177, 0.25); }
+  </style>
+</head>
+<body class="demo">
+  <div class="game is-ready">
+    <div class="fake-hud"><b>DataLab</b> · Explorar · Construir · Equipe · Tarefas</div>
+    <div class="rack" style="left: 46%; top: 38%"></div>
+    <div class="rack" style="left: 51%; top: 42%"></div>
+    <div class="rack" style="left: 41%; top: 44%"></div>
+    <aside class="team-chat">Chat da equipe</aside>
+    <div class="minimap" aria-hidden="true"></div>
+    <div class="toasts" id="toasts"></div>
+  </div>
+  <script>
+    // the same markup demo.js toast() builds
+    const box = document.getElementById('toasts');
+    function toast(tone, label, text) {
+      const el = document.createElement('div');
+      el.className = 'toast toast--' + tone;
+      el.innerHTML = '<span class="dot ' + (tone === 'warn' ? 'dot--warn' : tone === 'ok' ? '' : 'dot--info') + '"></span><b>' + label + '</b><span>' + text + '</span>';
+      box.appendChild(el);
+    }
+    toast('ok', 'Tarefa concluída', 'Ana · Verificar switch');
+    toast('warn', '⚠️ Alerta', 'Servidor SRV-03 sem resposta (cabo solto) — avisado por Monitoramento');
+  </script>
+</body>
+</html>

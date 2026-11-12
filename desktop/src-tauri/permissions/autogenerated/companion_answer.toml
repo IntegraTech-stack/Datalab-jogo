@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-companion-answer"
+description = "Enables the companion_answer command without any pre-configured scope."
+commands.allow = ["companion_answer"]
+
+[[permission]]
+identifier = "deny-companion-answer"
+description = "Denies the companion_answer command without any pre-configured scope."
+commands.deny = ["companion_answer"]

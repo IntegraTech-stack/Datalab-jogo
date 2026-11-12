@@ -1,0 +1,20 @@
+{
+  "id": "/jogo.html",
+  "name": "DataLab — Simulador de Datacenter",
+  "short_name": "DataLab",
+  "description": "Construa e opere seu datacenter, contrate a equipe e configure servidores num terminal simulado.",
+  "lang": "pt-BR",
+  "start_url": "/jogo.html?pwa=1",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#05070d",
+  "theme_color": "#05070d",
+  "categories": ["games", "education", "simulation"],
+  "icons": [
+    { "src": "/assets/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

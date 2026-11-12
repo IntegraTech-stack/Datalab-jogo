@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pets da Loja</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Silkscreen&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #060b16;
+    --panel: #0b1426;
+    --panel-2: #0f1b33;
+    --line: #1a2b4d;
+    --line-2: #26385c;
+    --ink: #dfe7f5;
+    --muted: #8797b0;
+    --turq: #2de2c8;
+    --amber: #ff7a17;
+    --gold: #f2c14e;
+    --shadow: #02050b;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 20px/1.15 'VT323', ui-monospace, monospace;
+    padding: 28px 16px 48px;
+  }
+  /* CRT scanlines, like the title screen */
+  body::after {
+    content: ''; position: fixed; inset: 0; pointer-events: none;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px);
+  }
+  .wrap { max-width: 1240px; margin: 0 auto; }
+  header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; margin-bottom: 22px; }
+  .kicker { font: 11px 'Silkscreen', monospace; letter-spacing: .12em; color: var(--turq); text-transform: uppercase; margin: 0 0 10px; }
+  h1 { font: 20px/1.4 'Press Start 2P', monospace; margin: 0; text-shadow: 3px 3px 0 var(--shadow); }
+  .sub { color: var(--muted); margin: 8px 0 0; max-width: 62ch; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; }
+  .seg { display: flex; border: 2px solid var(--line-2); box-shadow: 3px 3px 0 var(--shadow); }
+  .seg button, .btn {
+    font: 11px 'Silkscreen', monospace; letter-spacing: .06em; text-transform: uppercase;
+    background: var(--panel); color: var(--muted); border: 0; padding: 9px 12px; cursor: pointer;
+  }
+  .seg button + button { border-left: 2px solid var(--line-2); }
+  .seg button[aria-pressed="true"] { background: var(--turq); color: #04140f; }
+  .seg button:focus-visible, .btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); gap: 18px; }
+  .card {
+    background: var(--panel); border: 2px solid var(--line-2); box-shadow: 5px 5px 0 var(--shadow);
+    display: flex; flex-direction: column; min-width: 0;
+  }
+  .card__stage { position: relative; background: #070f1e; border-bottom: 2px solid var(--line-2); display: grid; place-items: center; padding: 40px 0 10px; }
+  .card__stage canvas { display: block; image-rendering: pixelated; }
+  .rar {
+    position: absolute; top: 8px; left: 8px; font: 10px 'Silkscreen', monospace; letter-spacing: .08em; text-transform: uppercase;
+    padding: 4px 6px; color: #06070a; box-shadow: 2px 2px 0 var(--shadow);
+  }
+  .price { position: absolute; top: 8px; right: 8px; display: flex; align-items: center; gap: 6px; font: 11px 'Press Start 2P', monospace; color: var(--gold); text-shadow: 2px 2px 0 var(--shadow); }
+  .price svg { width: 16px; height: 16px; }
+  .card__body { padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .card h2 { font: 13px/1.5 'Press Start 2P', monospace; margin: 0; text-shadow: 2px 2px 0 var(--shadow); }
+  .card .who { font: 10px 'Silkscreen', monospace; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin: -4px 0 0; }
+  .desc { margin: 0; }
+  .fx { margin: 0; color: var(--muted); border-left: 3px solid var(--line-2); padding-left: 8px; }
+  .fx b { color: var(--turq); font-weight: 400; }
+  .frames { display: grid; gap: 6px; margin-top: 4px; }
+  .frames__row { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .frames__row span { font: 9px 'Silkscreen', monospace; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; flex-basis: 100%; }
+  .frames canvas { image-rendering: pixelated; background: #070f1e; border: 1px solid var(--line); width: 44px; height: 62px; }
+  .card__foot { display: flex; gap: 8px; margin-top: auto; padding-top: 6px; }
+  .btn { border: 2px solid var(--line-2); box-shadow: 2px 2px 0 var(--shadow); color: var(--ink); }
+  .btn:active { transform: translate(2px, 2px); box-shadow: none; }
+
+  section.map { margin-top: 26px; background: var(--panel); border: 2px solid var(--line-2); box-shadow: 5px 5px 0 var(--shadow); }
+  .map__head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 12px 14px; border-bottom: 2px solid var(--line-2); }
+  .map__head h3, section.dev h3 { font: 11px 'Press Start 2P', monospace; margin: 0; }
+  .map__head p { margin: 0; color: var(--muted); }
+  .map__stage { display: grid; place-items: center; padding: 12px 0; background: #070f1e; overflow: hidden; }
+  .map__stage canvas { display: block; image-rendering: pixelated; }
+
+  section.dev { margin-top: 26px; padding: 14px; border: 2px dashed var(--line-2); }
+  section.dev ol { margin: 10px 0 12px; padding-left: 22px; color: var(--muted); }
+  section.dev li { margin: 4px 0; }
+  section.dev code { color: var(--ink); }
+  pre { margin: 0; padding: 12px; background: #050912; border: 1px solid var(--line); overflow-x: auto; font: 16px/1.25 'VT323', monospace; color: #b8f3ff; }
+  .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--turq); color: #04140f; font: 11px 'Silkscreen', monospace; padding: 10px 14px; box-shadow: 3px 3px 0 var(--shadow); opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.on { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <p class="kicker">Loja · aba Personagem · slot pet</p>
+      <h1>Pets novos</h1>
+      <p class="sub">Três companheiros que seguem o jogador. Os sprites usam o mesmo quadro dos pets do jogo (22×31, de perfil, contorno de 1px) e são desenhados pixel a pixel a partir das grades abaixo.</p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="Animação">
+        <button type="button" data-mode="idle" aria-pressed="true">Parado</button>
+        <button type="button" data-mode="walk" aria-pressed="false">Andando</button>
+      </div>
+      <div class="seg" role="group" aria-label="Lado">
+        <button type="button" data-dir="right" aria-pressed="true">Direita</button>
+        <button type="button" data-dir="left" aria-pressed="false">Esquerda</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="grid" id="cards"></main>
+
+  <section class="map" aria-label="Pets seguindo jogadores no mapa">
+    <div class="map__head">
+      <h3>No mapa</h3>
+      <p id="mapScale">Cada jogador anda e para; o pet segue com a mesma lógica do pets.js.</p>
+    </div>
+    <div class="map__stage" id="mapStage"><canvas id="map"></canvas></div>
+  </section>
+
+  <section class="dev">
+    <h3>Para colocar no jogo</h3>
+    <ol>
+      <li>As linhas abaixo entram em <code>assets/js/cosmetics.js</code>, junto dos outros pets (logo depois de <code>pet_holodog</code>).</li>
+      <li>Os frames seguem o formato de <code>drawPet</code>: quadro 22×31 virado para a direita (a esquerda é espelhada), chão na linha 28. O botão <b>Grade</b> de cada card copia a paleta e os frames em JSON.</li>
+      <li>Os idles têm 4 frames; o <code>pets.js</code> hoje faz <code>% 2</code> no idle e precisa passar a usar <code>% s.idle.length</code>.</li>
+      <li>O morcego se pendurar no rack e os três efeitos são código novo no <code>pets.js</code>; esta página mostra como eles devem se comportar.</li>
+    </ol>
+    <pre id="catalog"></pre>
+  </section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- the game's own character sprites, so the map shows the real player next to the pets -->
+<script src="assets/js/sprites.js"></script>
+<script>
+(function () {
+  'use strict';
+  const FW = 22, FH = 31, AX = 11, AY = 29, OUT = '#06070a';
+  const RAR = {
+    common: { name: 'Comum', color: '#9aa3b0' },
+    rare: { name: 'Raro', color: '#6aa7e8' },
+    epic: { name: 'Épico', color: '#c084fc' },
+    legendary: { name: 'Lendário', color: '#f2c14e' },
+  };
+
+  /* ------------------------------------------------------------------ */
+  /* The pets. Parts are pixel grids ('.' = empty, one letter per colour */
+  /* of the pet's palette); each frame stamps parts at [x, y] in the     */
+  /* 22×31 frame. Flag 'm' mirrors the part, 'pit' marks the avocado pit. */
+  /* ------------------------------------------------------------------ */
+  const PETS = [
+    {
+      id: 'pet_dracache', value: 'dracache', name: 'Drácache', rarity: 'epic', price: 150,
+      desc: 'Morcego roxo de olhos de LED que cochila de cabeça para baixo nos racks.',
+      effect: 'Deixa um rastro de partículas roxas por onde voa.',
+      fx: 'trail', hangs: true, fps: { idle: 2, walk: 10 }, labels: ['pendurado', 'voando'],
+      pal: { P: '#4b2a78', p: '#2e1850', Q: '#8a62c8', W: '#3a1f62', w: '#28134a', E: '#a5f7ea', e: '#2de2c8', F: '#f1f1ee', k: '#1a0d2e' },
+      parts: {
+        fbody: ['Q.....Q', 'PQ...QP', 'PPPPPPP', 'PEPPPEP', 'PPFPFPP', '.PPPPP.', '.pPPPp.', '..ppp..', '..k.k..'],
+        wUp: ['Q....', 'WQ...', 'WWQ..', 'WWWQQ', 'w.wWW'],
+        wMid: ['QQQQQ', 'WWWWW', 'wWwWW', 'w.w.W'],
+        wDown: ['....Q', '...QW', '..QWW', '.QWWw', 'Qw.w.'],
+        hang: [
+          '....k.k....',
+          '....pPp....',
+          '..QWpPpWQ..',
+          '.QWWPPPWWQ.',
+          '.WQWPPPWQW.',
+          '.WWQPPPQWW.',
+          '..WWPPPWW..',
+          '...wPPPw...',
+          '..PPPPPPP..',
+          '.PPFPPPFPP.',
+          '.PeEPPPEeP.',
+          '.PPPPPPPPP.',
+          '.QP.....PQ.',
+          '.Q.......Q.',
+        ],
+        puff: ['...........', '...........', '...........', 'W.........W', 'W.........W', 'W.........W'],
+        hdim: ['..ee...ee..'],
+        hblink: ['..pp...pp..'],
+      },
+      idle: [
+        [['hang', 6, 2]],
+        [['hang', 6, 2], ['puff', 6, 2]],
+        [['hang', 6, 2], ['hdim', 6, 12]],
+        [['hang', 6, 2], ['hblink', 6, 12]],
+      ],
+      walk: [
+        [['wUp', 3, 12], ['wUp', 15, 12, 'm'], ['fbody', 8, 14]],
+        [['wMid', 3, 16], ['wMid', 15, 16, 'm'], ['fbody', 8, 14]],
+        [['wDown', 3, 15], ['wDown', 15, 15, 'm'], ['fbody', 8, 13]],
+        [['wMid', 3, 16], ['wMid', 15, 16, 'm'], ['fbody', 8, 14]],
+      ],
+    },
+    {
+      id: 'pet_guaca', value: 'guaca', name: 'Guaca.exe', rarity: 'common', price: 50,
+      desc: 'Abacate de bracinhos curtos que anda como quem acabou de aprender.',
+      effect: 'De vez em quando o caroço pula para fora, dá uma cambalhota e volta pro lugar.',
+      fx: 'pit', fps: { idle: 3, walk: 7 }, labels: ['parado', 'andando'],
+      pal: { K: '#3d5e22', k: '#24391a', G: '#a6d655', g: '#7fb23e', Y: '#e6f2a2', H: '#9fb860', h: '#cfe08a', B: '#8a5530', b: '#c08050', n: '#5a3318', E: '#0b0d12', w: '#ffffff', M: '#4a1612', T: '#ff7f9e', l: '#7fae42', f: '#4b7028' },
+      parts: {
+        body: [
+          '.....KK.....',
+          '....KGGK....',
+          '...KGGGGK...',
+          '..KGGGGGGK..',
+          '.KGGGGEwGGK.',
+          '.KGGEGEEGgK.',
+          'KGGGGMMGGGgK',
+          'KGGGGGTGGGgK',
+          'KGGGYYYYGGgK',
+          'KGGYHHHHYGgK',
+          'KGGYhhhhYGgK',
+          'KGGYhhhhYGgK',
+          'KgGGYhhYGGgK',
+          '.KgGGYYGGgK.',
+          '..KkggggkK..',
+          '...kkkkkk...',
+        ],
+        pit: ['bbBB', 'bBBB', 'BBBn', '.Bn.'],
+        armUp: ['l..', '.l.', '..l'],
+        armDown: ['..l', '.l.', 'l..'],
+        legsI: ['....l..l....', '....l..l....', '....ff.ff...'],
+        legsA: ['....l...l...', '...l.....l..', '..ff.....ff.'],
+        legsB: ['.....ll.....', '....l..l....', '....ff.ff...'],
+        tongue: ['T'],
+        eblink: ['GG'],
+      },
+      idle: [
+        [['legsI', 5, 26], ['body', 5, 10], ['pit', 9, 19, 'pit'], ['armDown', 2, 19], ['armDown', 17, 19, 'm']],
+        [['legsI', 5, 26], ['body', 5, 11], ['pit', 9, 20, 'pit'], ['armDown', 2, 20], ['armDown', 17, 20, 'm']],
+        [['legsI', 5, 26], ['body', 5, 10], ['pit', 9, 19, 'pit'], ['armDown', 2, 19], ['armUp', 17, 17, 'm'], ['tongue', 11, 18]],
+        [['legsI', 5, 26], ['body', 5, 10], ['pit', 9, 19, 'pit'], ['armDown', 2, 19], ['armDown', 17, 19, 'm'], ['eblink', 11, 14]],
+      ],
+      walk: [
+        [['legsA', 5, 26], ['body', 4, 10], ['pit', 8, 19, 'pit'], ['armUp', 1, 17], ['armDown', 16, 19, 'm']],
+        [['legsB', 5, 26], ['body', 5, 11], ['pit', 9, 20, 'pit'], ['armDown', 2, 20], ['armDown', 17, 20, 'm']],
+        [['legsA', 5, 26, 'm'], ['body', 6, 10], ['pit', 10, 19, 'pit'], ['armDown', 3, 19], ['armUp', 18, 17, 'm']],
+        [['legsB', 5, 26], ['body', 5, 11], ['pit', 9, 20, 'pit'], ['armDown', 2, 20], ['armDown', 17, 20, 'm']],
+      ],
+    },
+    {
+      id: 'pet_sudo', value: 'sudo', name: 'Sudo', rarity: 'rare', price: 85,
+      desc: 'Gato preto de fone LED que só obedece quando você pede com sudo.',
+      effect: 'Solta notinhas musicais pelo fone enquanto te segue.',
+      fx: 'notes', fps: { idle: 3, walk: 8 }, labels: ['parado', 'andando'],
+      pal: { F: '#2b2f42', D: '#171a24', f: '#5a6380', E: '#7ee0a1', n: '#e07a96', w: '#e8e8ee', H: '#7b8aa6', h: '#2de2c8', c: '#14897a' },
+      parts: {
+        head: [
+          '.f....f.',
+          'HFHHHHFH',
+          'hFFFFFFh',
+          'hFEFFEFh',
+          'cFFFnFFc',
+          '.FFFwFF.',
+          '..FFFF..',
+        ],
+        body: ['.ffffffffff.', 'FFFFFFFFFFFF', 'FFFFFFFFFwFF', '.DDFFFFFFFD.'],
+        tailA: ['ww..', 'f...', 'F...', '.f..', '.F..', '..FF'],
+        tailB: ['.ww.', '.f..', 'f...', 'F...', '.F..', '..FF'],
+        legsI: ['.DF.....DF..', '.DF.....DF..', '.DF.....DF..'],
+        legsA: ['.DF.....DF..', 'D..F...D..F.', 'D..F...D..F.'],
+        legsB: ['.FD.....FD..', 'F..D...F..D.', 'F..D...F..D.'],
+        cblink: ['F..F'],
+      },
+      idle: [
+        [['legsI', 3, 26], ['body', 3, 22], ['tailA', 0, 17], ['head', 10, 16]],
+        [['legsI', 3, 26], ['body', 3, 22], ['tailB', 0, 17], ['head', 10, 16]],
+        [['legsI', 3, 26], ['body', 3, 22], ['tailB', 0, 17], ['head', 10, 17]],
+        [['legsI', 3, 26], ['body', 3, 22], ['tailA', 0, 17], ['head', 10, 16], ['cblink', 12, 19]],
+      ],
+      walk: [
+        [['legsA', 3, 26], ['body', 3, 22], ['tailA', 0, 17], ['head', 10, 16]],
+        [['legsI', 3, 26], ['body', 3, 22], ['tailA', 0, 17], ['head', 10, 17]],
+        [['legsB', 3, 26], ['body', 3, 22], ['tailB', 0, 17], ['head', 10, 16]],
+        [['legsI', 3, 26], ['body', 3, 22], ['tailB', 0, 17], ['head', 10, 17]],
+      ],
+    },
+  ];
+
+  /* ------------------------------------------------------------------ */
+  /* Grid → canvas (the same outline pass as petOutline in cosmetics.js) */
+  /* ------------------------------------------------------------------ */
+  const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; };
+  const R = (g, x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const mirrorRows = (rows) => rows.map((r) => [...r].reverse().join(''));
+  const blank = (w, h) => Array.from({ length: h }, () => Array(w).fill('.'));
+  function stamp(G, rows, x, y) {
+    rows.forEach((row, ry) => {
+      for (let rx = 0; rx < row.length; rx++) {
+        const ch = row[rx], gx = x + rx, gy = y + ry;
+        if (ch !== '.' && gy >= 0 && gy < G.length && gx >= 0 && gx < G[0].length) G[gy][gx] = ch;
+      }
+    });
+  }
+  function outline(G) {
+    const H = G.length, W = G[0].length, O = G.map((r) => r.slice());
+    const full = (x, y) => x >= 0 && y >= 0 && x < W && y < H && G[y][x] !== '.';
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (G[y][x] === '.' && (full(x - 1, y) || full(x + 1, y) || full(x, y - 1) || full(x, y + 1))) O[y][x] = '#';
+    }
+    return O;
+  }
+  function paint(G, pal) {
+    const c = mk(G[0].length, G.length), g = c.getContext('2d');
+    G.forEach((row, y) => row.forEach((ch, x) => {
+      if (ch === '.') return;
+      const col = ch === '#' ? OUT : pal[ch];
+      if (!col) { console.warn('cor fora da paleta:', ch); return; }
+      R(g, x, y, 1, 1, col);
+    }));
+    return c;
+  }
+  function flip(src, h, v) {
+    const c = mk(src.width, src.height), g = c.getContext('2d');
+    g.translate(h ? src.width : 0, v ? src.height : 0);
+    g.scale(h ? -1 : 1, v ? -1 : 1);
+    g.drawImage(src, 0, 0);
+    return c;
+  }
+  function compose(P, layers, skipPit) {
+    const G = blank(FW, FH);
+    for (const [name, x, y, flag] of layers) {
+      if (skipPit && flag === 'pit') continue;
+      let rows = P.parts[name];
+      if (!rows) throw new Error(P.value + ': parte ' + name + ' não existe');
+      if (flag === 'm') rows = mirrorRows(rows);
+      stamp(G, rows, x, y);
+    }
+    return outline(G);
+  }
+  function build(P) {
+    const S = { grids: { idle: [], walk: [] }, right: { idle: [], walk: [] }, left: { idle: [], walk: [] } };
+    for (const k of ['idle', 'walk']) {
+      for (const layers of P[k]) {
+        const G = compose(P, layers, false), c = paint(G, P.pal);
+        S.grids[k].push(G.map((r) => r.join('')));
+        S.right[k].push(c);
+        S.left[k].push(flip(c, true, false));
+      }
+    }
+    if (P.fx === 'pit') {
+      S.noPit = { right: [], left: [] };
+      for (const layers of P.idle) {
+        const c = paint(compose(P, layers, true), P.pal);
+        S.noPit.right.push(c);
+        S.noPit.left.push(flip(c, true, false));
+      }
+      const pg = blank(6, 6);
+      stamp(pg, P.parts.pit, 1, 1);
+      const pc = paint(outline(pg), P.pal);
+      S.pit = [pc, flip(pc, true, false), flip(pc, true, true), flip(pc, false, true)];
+    }
+    P.sheet = S;
+  }
+  PETS.forEach(build);
+
+  // music note for Sudo (3×4 + outline), in three LED colours
+  const NOTE = ['.NN', '.N.', 'NN.', 'NN.'];
+  const NOTES = ['#2de2c8', '#7ee0a1', '#a5f7ea'].map((c) => { const G = blank(5, 6); stamp(G, NOTE, 1, 1); return paint(outline(G), { N: c }); });
+  const SPARK = ['#f0d6ff', '#c084fc', '#8b5cf6', '#5b2ea8'];
+
+  /* ------------------------------------------------------------------ */
+  /* A pet on screen: frame + its silly effect (particles kept per view) */
+  /* ------------------------------------------------------------------ */
+  class PetView {
+    constructor(P) { this.P = P; this.seed = Math.random() * 10; this.parts = []; this.emit = 0; this.nc = 0; }
+    // ox, oy: the frame's top-left corner in world pixels. inPlace: walking on the spot (card)
+    draw(g, ox, oy, anim, fi, dir, t, dt, inPlace) {
+      const P = this.P, S = P.sheet, right = dir === 'right';
+      ox = Math.round(ox); oy = Math.round(oy);
+      if (P.fx === 'trail' && anim === 'walk') {
+        this.emit -= dt;
+        while (this.emit <= 0) {
+          this.emit += 0.035;
+          this.parts.push({ k: 'p', x: ox + 11 + rnd(-2, 2), y: oy + 17 + rnd(-2, 2), vx: (inPlace ? (right ? -24 : 24) : 0) + rnd(-3, 3), vy: rnd(-1, 5), age: 0, life: rnd(0.6, 1.1) });
+        }
+      }
+      if (P.fx === 'notes') {
+        this.emit -= dt;
+        if (this.emit <= 0) {
+          this.emit = 0.9;
+          this.parts.push({ k: 'n', x: ox + (right ? 18 : FW - 1 - 18) - 2, y: oy + 13, vx: inPlace && anim === 'walk' ? (right ? -9 : 9) : 0, vy: -7, age: 0, life: 1.9, c: this.nc++ % 3 });
+        }
+      }
+      for (const p of this.parts) { p.age += dt; p.x += p.vx * dt; p.y += p.vy * dt; }
+      this.parts = this.parts.filter((p) => p.age < p.life);
+
+      // behind the pet: the bat's trail
+      for (const p of this.parts) {
+        if (p.k !== 'p') continue;
+        const r = p.age / p.life;
+        g.globalAlpha = 1 - r * 0.8;
+        R(g, Math.round(p.x), Math.round(p.y), 1, 1, SPARK[Math.min(3, Math.floor(r * 4))]);
+      }
+      g.globalAlpha = 1;
+
+      // the frame (Guaca: without the pit while it is in the air)
+      let drawn = false;
+      if (P.fx === 'pit' && anim === 'idle') {
+        const ph = (t + this.seed) % 7;
+        if (ph > 5 && ph < 6.2) {
+          const k = (ph - 5) / 1.2, i = fi % P.idle.length, L = P.idle[i].find((l) => l[3] === 'pit');
+          g.drawImage(S.noPit[dir][i], ox, oy);
+          const px = right ? L[1] : FW - L[1] - 4, dy = -Math.round(Math.sin(Math.PI * k) * 11);
+          const v = k < 0.1 || k > 0.9 ? 0 : Math.floor(k * 12) % 4;
+          g.drawImage(S.pit[v], ox + px - 1, oy + L[2] + dy - 1);
+          drawn = true;
+        }
+      }
+      if (!drawn) { const list = S[dir][anim]; g.drawImage(list[fi % list.length], ox, oy); }
+
+      // in front: Sudo's notes
+      for (const p of this.parts) {
+        if (p.k !== 'n') continue;
+        const r = p.age / p.life;
+        g.globalAlpha = r < 0.65 ? 1 : 1 - (r - 0.65) / 0.35;
+        g.drawImage(NOTES[p.c], Math.round(p.x + Math.sin(p.age * 4.5) * 1.4), Math.round(p.y));
+      }
+      g.globalAlpha = 1;
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Floor and racks, in the game's navy palette                         */
+  /* ------------------------------------------------------------------ */
+  function floor(W, H, ox, oy, wall) {
+    const c = mk(W, H), g = c.getContext('2d'), img = g.createImageData(W, H);
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const X = x - ox, Y = y - oy, u = X / 32 + Y / 16, v = Y / 16 - X / 32;
+      const fu = u - Math.floor(u), fv = v - Math.floor(v);
+      let col = (Math.floor(u) + Math.floor(v)) & 1 ? [13, 23, 38] : [16, 28, 47];
+      if (fu < 0.045 || fv < 0.045) col = [27, 41, 66];
+      if (y < wall) col = y === wall - 1 ? [38, 56, 92] : (y % 6 === 0 ? [14, 22, 38] : [10, 17, 31]);
+      const i = (y * W + x) * 4;
+      img.data[i] = col[0]; img.data[i + 1] = col[1]; img.data[i + 2] = col[2]; img.data[i + 3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+    return c;
+  }
+  const RACK_W = 14, RACK_H = 26;
+  function rack(g, x, base, t, seed) {
+    const top = base - RACK_H;
+    for (let i = 0; i < 3; i++) R(g, x + RACK_W + i, top - 1 - i, 1, RACK_H, '#121a2a');
+    for (let i = 0; i < 3; i++) R(g, x + 1 + i, top - 1 - i, RACK_W, 1, '#3a4a66');
+    R(g, x - 1, top - 1, 1, RACK_H + 1, OUT);
+    R(g, x, base, RACK_W + 3, 1, 'rgba(0,0,0,0.45)');
+    R(g, x, top, RACK_W, RACK_H, '#1a2438');
+    R(g, x, top, RACK_W, 1, '#6b7a94');
+    R(g, x, top, 1, RACK_H, '#2c3a52');
+    R(g, x + RACK_W - 1, top, 1, RACK_H, '#0f1626');
+    for (let k = 0; k < 7; k++) {
+      const y = top + 3 + k * 3, on = Math.sin(t * (2 + (k % 3)) + seed + k) > -0.2;
+      R(g, x + 2, y, RACK_W - 4, 2, '#0d1422');
+      R(g, x + RACK_W - 5, y, 1, 1, on ? '#2de2c8' : '#14897a');
+      R(g, x + RACK_W - 3, y, 1, 1, (k + Math.floor(t * 2 + seed)) % 4 ? '#7ee0a1' : '#1f4a35');
+    }
+    return { hx: x + 7, top };
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Cards                                                               */
+  /* ------------------------------------------------------------------ */
+  const STATE = { mode: location.hash === '#walk' ? 'walk' : 'idle', dir: 'right' };
+  const CW = 44, CH = 36, FOX = 11, FOY = 3;
+  const cardFloor = floor(CW, CH, 22, 15, 0);
+  const coin = '<svg viewBox="0 0 8 8" shape-rendering="crispEdges" aria-hidden="true"><path fill="#06070a" d="M2 0h4v1h1v1h1v4h-1v1h-1v1h-4v-1h-1v-1h-1v-4h1v-1h1z"/><path fill="#f2c14e" d="M2 1h4v1h1v4h-1v1h-4v-1h-1v-4h1z"/><path fill="#fff1b8" d="M2 2h1v1h-1z"/><path fill="#b8862b" d="M3 3h2v2h-2z"/></svg>';
+  const cardsEl = document.getElementById('cards');
+  const cards = PETS.map((P) => {
+    const el = document.createElement('article');
+    el.className = 'card';
+    el.innerHTML =
+      '<div class="card__stage"><span class="rar" style="background:' + RAR[P.rarity].color + '">' + RAR[P.rarity].name + '</span>' +
+      '<span class="price">' + coin + P.price + '</span><canvas width="' + CW + '" height="' + CH + '" aria-label="' + P.name + ' animado"></canvas></div>' +
+      '<div class="card__body"><h2>' + P.name + '</h2><p class="who">' + P.id + ' · ' + P.price + ' Gold</p>' +
+      '<p class="desc">' + P.desc + '</p><p class="fx"><b>Efeito bobo:</b> ' + P.effect + '</p>' +
+      '<div class="frames"></div>' +
+      '<div class="card__foot"><button class="btn" type="button" data-svg>Baixar SVG</button><button class="btn" type="button" data-grid>Copiar grade</button></div></div>';
+    cardsEl.appendChild(el);
+    const frames = el.querySelector('.frames');
+    ['idle', 'walk'].forEach((k, i) => {
+      const row = document.createElement('div');
+      row.className = 'frames__row';
+      row.innerHTML = '<span>' + P.labels[i] + '</span>';
+      P.sheet.right[k].forEach((img) => {
+        const c = mk(FW, FH), g = c.getContext('2d');
+        g.drawImage(img, 0, 0);
+        row.appendChild(c);
+      });
+      frames.appendChild(row);
+    });
+    el.querySelector('[data-svg]').addEventListener('click', () => downloadSvg(P));
+    el.querySelector('[data-grid]').addEventListener('click', () => copyGrid(P));
+    const canvas = el.querySelector('canvas');
+    return { P, el, canvas, g: canvas.getContext('2d'), view: new PetView(P), stage: el.querySelector('.card__stage') };
+  });
+
+  function drawCard(c, t, dt) {
+    const { g, P } = c, anim = STATE.mode, hanging = P.hangs && anim === 'idle';
+    g.imageSmoothingEnabled = false;
+    g.drawImage(cardFloor, 0, 0);
+    if (hanging) {
+      // the rack's top lip it hangs from
+      R(g, 0, FOY - 3, CW, 4, '#1a2438'); R(g, 0, FOY, CW, 1, '#6b7a94'); R(g, 0, FOY + 1, CW, 1, OUT);
+      for (let x = 4; x < CW; x += 9) R(g, x, FOY - 2, 1, 1, Math.sin(t * 3 + x) > 0 ? '#2de2c8' : '#14897a');
+    } else {
+      const fly = P.hangs;
+      R(g, FOX + 6, FOY + 28, 10, 1, 'rgba(0,0,0,0.45)');
+      if (!fly) R(g, FOX + 5, FOY + 27, 12, 1, 'rgba(0,0,0,0.25)');
+    }
+    const fps = P.fps[anim], fi = Math.floor(t * fps) % P[anim].length;
+    c.view.draw(g, FOX, FOY, anim, fi, STATE.dir, t, dt, true);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* The map: four players walking and stopping, one pet each            */
+  /* ------------------------------------------------------------------ */
+  const MW = 256, MH = 92, WALL = 10, RACK_BASE = 36, GAP = 13;
+  const mapCanvas = document.getElementById('map'), mg = mapCanvas.getContext('2d');
+  mapCanvas.width = MW; mapCanvas.height = MH;
+  const mapFloor = floor(MW, MH, 0, 4, WALL);
+  const rackXs = [22, 70, 118, 166, 214];
+  const LOOKS = [
+    { skin: '#f2c8a0', hair: '#2a1c16', hairStyle: 'short', shirt: '#7c3aed', pants: '#232a36', shoes: '#eceff3', badge: '#ff7a17', lanyard: '#ffc285' },
+    { skin: '#c98e66', hair: '#1a1210', hairStyle: 'bun', shirt: '#2f3a4d', pants: '#1b1f27', shoes: '#2b2f38', headset: true, badge: '#a0c3ec', lanyard: '#a0c3ec' },
+    { skin: '#8d5a3b', hair: '#0f0b0a', hairStyle: 'cap', cap: '#ff7a17', shirt: '#3b4250', vest: '#5a6170', pants: '#2a3140', shoes: '#16181d', badge: '#a0c3ec' },
+    { skin: '#f5d3b8', hair: '#b8562c', hairStyle: 'long', shirt: '#a0c3ec', pants: '#2b2f3a', shoes: '#c4b5fd', badge: '#7c3aed', lanyard: '#7c3aed' },
+  ];
+  let sheets = null;
+  try { if (window.DL && DL.makeSheet) sheets = LOOKS.map((L) => DL.makeSheet(L)); } catch (e) { console.warn('sprites.js indisponível, usando silhueta', e); sheets = null; }
+
+  const walkers = PETS.map((P, i) => {
+    const y = 48 + i * 12, x = 30 + i * 46;
+    return {
+      P, view: new PetView(P), sheet: sheets && sheets[i],
+      pl: { x, y, dir: i % 2 ? 'left' : 'right', moving: false, dist: 0, wait: 0.6 + i * 0.7, goal: i % 2 ? 26 : 230, speed: 30 + i * 2 },
+      pet: { x: x - GAP, y, dir: 'right', moving: false, dist: 0, hanging: false, still: 0 },
+    };
+  });
+
+  function stepWalker(w, dt) {
+    const pl = w.pl, a = w.pet;
+    if (pl.wait > 0) { pl.wait -= dt; pl.moving = false; }
+    else {
+      const d = pl.goal - pl.x, s = Math.min(Math.abs(d), pl.speed * dt);
+      pl.x += Math.sign(d) * s; pl.dist += s; pl.moving = true; pl.dir = d < 0 ? 'left' : 'right';
+      if (Math.abs(pl.goal - pl.x) < 0.5) { pl.wait = 2.6 + Math.random() * 1.2; pl.goal = pl.goal > 128 ? 26 : 230; }
+    }
+    a.still = pl.moving ? 0 : a.still + dt;
+    // where it wants to be: behind the player (pets.js), or, for the bat, on the nearest rack
+    let tx = pl.x + (pl.dir === 'right' ? -GAP : GAP), ty = pl.y;
+    if (w.P.hangs && a.still > 0.5) {
+      const rx = rackXs.reduce((b, r) => (Math.abs(r + 7 - a.x) < Math.abs(b + 7 - a.x) ? r : b));
+      tx = rx + 7; ty = (RACK_BASE - RACK_H) + 19;
+    }
+    if (a.hanging && pl.moving) a.hanging = false;
+    const dx = tx - a.x, dy = ty - a.y, d = Math.hypot(dx, dy);
+    if (w.P.hangs) {
+      if (a.hanging) return;
+      if (d < 1.2 && a.still > 0.5) { a.x = tx; a.y = ty; a.hanging = true; a.moving = false; return; }
+    } else if (d < 3 || (!pl.moving && !a.moving && d < 9)) { a.moving = false; return; }
+    const step = Math.min(Math.min(d * 5, 95) * dt, d);
+    if (!a.moving) a.dist = 0;
+    a.x += (dx / d) * step; a.y += (dy / d) * step; a.dist += step; a.moving = true;
+    if (Math.abs(dx) > 0.5) a.dir = dx < 0 ? 'left' : 'right';
+  }
+
+  function drawPlayer(w, t) {
+    const pl = w.pl, x = Math.round(pl.x) - AX, y = Math.round(pl.y) - AY;
+    R(mg, Math.round(pl.x) - 5, Math.round(pl.y) - 1, 10, 2, 'rgba(0,0,0,0.35)');
+    if (w.sheet) {
+      const s = w.sheet[pl.dir];
+      const img = pl.moving ? s.walk[Math.floor(pl.dist / 4) % 4] : (Math.floor(t * 1.3 + pl.x) % 7 === 0 ? s.blink : s.idle);
+      mg.drawImage(img, x, y);
+    } else {
+      R(mg, x + 7, y + 6, 8, 22, OUT); R(mg, x + 8, y + 7, 6, 9, '#f2c8a0'); R(mg, x + 8, y + 16, 6, 11, '#7c3aed');
+    }
+  }
+  function drawWalkerPet(w, t, dt) {
+    const a = w.pet, P = w.P;
+    if (P.hangs) {
+      if (a.hanging) {
+        const fi = Math.floor(t * P.fps.idle) % P.idle.length;
+        w.view.draw(mg, a.x - 11, RACK_BASE - RACK_H - 1, 'idle', fi, a.dir, t, dt, false);
+      } else {
+        R(mg, Math.round(a.x) - 3, Math.round(a.y) - 1, 6, 1, 'rgba(0,0,0,0.3)');
+        w.view.draw(mg, a.x - AX, a.y - AY, 'walk', Math.floor(t * P.fps.walk) % 4, a.dir, t, dt, false);
+      }
+      return;
+    }
+    R(mg, Math.round(a.x) - 5, Math.round(a.y) - 1, 10, 1, 'rgba(0,0,0,0.35)');
+    const anim = a.moving ? 'walk' : 'idle';
+    const fi = a.moving ? Math.floor(a.dist / 4) % 4 : Math.floor(t * P.fps.idle) % P.idle.length;
+    w.view.draw(mg, a.x - AX, a.y - AY, anim, fi, a.dir, t, dt, false);
+  }
+  function drawMap(t, dt) {
+    mg.imageSmoothingEnabled = false;
+    mg.drawImage(mapFloor, 0, 0);
+    rackXs.forEach((x, i) => rack(mg, x, RACK_BASE, t, i * 1.7));
+    walkers.forEach((w) => stepWalker(w, dt));
+    // depth: by feet; a flying or hanging bat always sits in front of the racks
+    const items = [];
+    walkers.forEach((w) => {
+      items.push({ y: w.pl.y + 0.1, f: () => drawPlayer(w, t) });
+      items.push({ y: w.P.hangs ? Math.max(w.pet.hanging ? RACK_BASE + 1 : w.pet.y, RACK_BASE + 1) : w.pet.y, f: () => drawWalkerPet(w, t, dt) });
+    });
+    items.sort((a, b) => a.y - b.y).forEach((it) => it.f());
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* Integer scaling (crisp pixels at every width)                       */
+  /* ------------------------------------------------------------------ */
+  function fit() {
+    cards.forEach((c) => {
+      const s = Math.max(2, Math.min(6, Math.floor((c.stage.clientWidth - 8) / CW)));
+      c.canvas.style.width = CW * s + 'px'; c.canvas.style.height = CH * s + 'px';
+    });
+    const box = document.getElementById('mapStage');
+    const s = Math.max(1, Math.min(5, Math.floor((box.clientWidth - 16) / MW)));
+    mapCanvas.style.width = MW * s + 'px'; mapCanvas.style.height = MH * s + 'px';
+    document.getElementById('mapScale').textContent = 'Escala ×' + s + ' (no jogo fica perto de ×4). Cada jogador anda e para, e o pet segue com a mesma lógica do pets.js.';
+  }
+  new ResizeObserver(fit).observe(document.body);
+  fit();
+
+  /* ------------------------------------------------------------------ */
+  /* Controls, export                                                    */
+  /* ------------------------------------------------------------------ */
+  document.querySelectorAll('[data-mode]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.mode === STATE.mode)));
+  document.querySelectorAll('[data-mode]').forEach((b) => b.addEventListener('click', () => {
+    STATE.mode = b.dataset.mode;
+    document.querySelectorAll('[data-mode]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  }));
+  document.querySelectorAll('[data-dir]').forEach((b) => b.addEventListener('click', () => {
+    STATE.dir = b.dataset.dir;
+    document.querySelectorAll('[data-dir]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  }));
+  const toastEl = document.getElementById('toast');
+  let toastT = 0;
+  function toast(msg) { toastEl.textContent = msg; toastEl.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('on'), 1800); }
+  function save(name, text, type) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type }));
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  // sprite sheet: idle frames, then walk frames, facing right; runs of one colour merged into one rect
+  function downloadSvg(P) {
+    const all = [...P.sheet.grids.idle, ...P.sheet.grids.walk], gap = 2, W = all.length * (FW + gap) - gap;
+    let body = '';
+    all.forEach((rows, i) => {
+      const ox = i * (FW + gap);
+      rows.forEach((row, y) => {
+        for (let x = 0; x < row.length;) {
+          const ch = row[x];
+          if (ch === '.') { x++; continue; }
+          let e = x; while (e < row.length && row[e] === ch) e++;
+          body += '<rect x="' + (ox + x) + '" y="' + y + '" width="' + (e - x) + '" height="1" fill="' + (ch === '#' ? OUT : P.pal[ch]) + '"/>';
+          x = e;
+        }
+      });
+    });
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + FH + '" width="' + W * 8 + '" height="' + FH * 8 + '" shape-rendering="crispEdges"><title>' + P.name + ' · idle ×' + P.idle.length + ' + walk ×' + P.walk.length + '</title>' + body + '</svg>';
+    save('pet-' + P.value + '.svg', svg, 'image/svg+xml');
+    toast('pet-' + P.value + '.svg baixado');
+  }
+  function copyGrid(P) {
+    const data = { id: P.id, value: P.value, frame: [FW, FH], ground: 28, palette: Object.assign({ '#': OUT }, P.pal), idle: P.sheet.grids.idle, walk: P.sheet.grids.walk };
+    const text = JSON.stringify(data, null, 1);
+    const fallback = () => { save('pet-' + P.value + '.json', text, 'application/json'); toast('pet-' + P.value + '.json baixado'); };
+    try { navigator.clipboard.writeText(text).then(() => toast('Grade de ' + P.name + ' copiada'), fallback); } catch (e) { fallback(); }
+  }
+  document.getElementById('catalog').textContent = PETS.map((P) =>
+    "add({ id: '" + P.id + "', cat: 'char', slot: 'pet', value: '" + P.value + "', name: '" + P.name + "', rarity: '" + P.rarity + "', price: " + P.price + ", desc: '" + P.desc.replace(/'/g, "\\'") + "' });"
+  ).join('\n');
+
+  /* ------------------------------------------------------------------ */
+  let last = performance.now(), t = 0;
+  function loop(now) {
+    const dt = Math.min(0.05, Math.max(0, (now - last) / 1000));
+    last = now; t += dt;
+    cards.forEach((c) => drawCard(c, t, dt));
+    drawMap(t, dt);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+  window.PetsPreview = { PETS, cards, walkers, STATE, step: (sec) => { for (let i = 0; i < sec * 30; i++) { t += 1 / 30; cards.forEach((c) => drawCard(c, t, 1 / 30)); drawMap(t, 1 / 30); } } };
+})();
+</script>
+</body>
+</html>

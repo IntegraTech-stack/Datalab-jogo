@@ -1,0 +1,15 @@
+{
+  "name": "datalab-agent-gateway",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DataLab · Agent Gateway: runs AI agents (OpenCode) for the hired crew in an isolated sandbox",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/server.mjs",
+    "test": "node --test test/policy.test.mjs test/gateway.test.mjs",
+    "test:live": "node --test test/live-opencode.test.mjs"
+  }
+}

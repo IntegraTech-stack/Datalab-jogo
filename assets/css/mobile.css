@@ -1,0 +1,562 @@
+/* DataLab — phones and tablets (PWA). Linked with media="(hover: none) and (pointer: coarse)" and every rule
+   sits under html.is-mobile (set by mobile.js), so the PC layout never sees any of this. */
+
+/* =====================================================================
+   Install screen: the character doing emotes next to the step by step
+   (index.html and jogo.html; plain colours, base.css is not on the landing)
+   ===================================================================== */
+.is-pwa-screen, .is-pwa-screen body { overflow: hidden; }
+.pwa {
+  position: fixed; inset: 0; z-index: 3000;
+  display: flex; overflow-y: auto; overscroll-behavior: contain;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background: #05070d; color: #e6ecf5;
+  font: 400 19px/1.15 'VT323', monospace;
+  -webkit-text-size-adjust: 100%;
+}
+.pwa [hidden] { display: none !important; }
+.pwa__grid {
+  position: fixed; inset: 0; pointer-events: none;
+  background-image: linear-gradient(rgba(61, 255, 162, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(61, 255, 162, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+  -webkit-mask-image: radial-gradient(120% 80% at 50% 40%, #000 30%, transparent 85%);
+  mask-image: radial-gradient(120% 80% at 50% 40%, #000 30%, transparent 85%);
+}
+.pwa__card {
+  position: relative; width: min(620px, 100%); margin: auto; padding: 18px 16px 12px;
+  background: #0b1120;
+  box-shadow: 0 -4px #46506b, 0 4px #46506b, -4px 0 #46506b, 4px 0 #46506b, 0 0 0 4px #05070d, 0 24px 60px rgba(0, 0, 0, 0.6);
+  animation: pwa-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.pwa__brand { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; font: 400 12px/1 'Press Start 2P', monospace; color: #3dffa2; text-shadow: 0 2px #0f4a33; }
+.pwa__mark { display: inline-flex; flex-direction: column; gap: 2px; padding: 3px; background: #152033; box-shadow: 0 0 0 2px #2a3a5c; }
+.pwa__mark i { display: block; width: 14px; height: 3px; background: #0b1120; box-shadow: inset -3px 0 #3dffa2; }
+.pwa__mark i:nth-child(2) { box-shadow: inset -3px 0 #ff7a17; }
+
+.pwa__body { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 14px; align-items: start; }
+.pwa__hero { position: sticky; top: 0; display: flex; flex-direction: column; align-items: center; padding-top: 34px; }
+.pwa__char { display: block; width: 88px; height: 124px; image-rendering: pixelated; image-rendering: crisp-edges; }
+.pwa__floor { display: block; width: 92px; height: 8px; margin-top: -4px; background: repeating-linear-gradient(90deg, #152033 0 8px, #0f1626 8px 16px); box-shadow: 0 2px #2a3a5c; }
+.pwa__bubble {
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  display: grid; place-items: center; width: 34px; height: 28px;
+  background: #e6ecf5; box-shadow: 0 0 0 2px #05070d; font-size: 17px; line-height: 1;
+}
+.pwa__bubble::after { content: ''; position: absolute; left: 50%; bottom: -6px; margin-left: -3px; border: 3px solid transparent; border-top: 4px solid #e6ecf5; border-bottom: 0; }
+.pwa__bubble.is-pop { animation: pwa-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+.pwa__guide { min-width: 0; }
+.pwa__title { margin: 0 0 8px; font: 400 15px/1.45 'Press Start 2P', monospace; color: #fff; text-shadow: 0 2px #000; }
+.pwa__text { margin: 0 0 12px; color: #8a98ad; }
+.pwa__tabs { display: flex; gap: 6px; }
+.pwa__tabs button {
+  flex: 1; height: 40px; padding: 0 6px; border: 2px solid #394b6d; background: #141b2c; color: #8a98ad;
+  font: 400 10px/1 'Press Start 2P', monospace; cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.pwa__tabs button[aria-selected="true"] { border-color: #3dffa2; background: rgba(61, 255, 162, 0.1); color: #3dffa2; }
+.pwa__steps { display: grid; gap: 6px; margin: 10px 0 0; padding: 0; list-style: none; counter-reset: pwa; }
+.pwa__steps li {
+  display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; align-items: start;
+  padding: 9px 10px; background: #141b2c; box-shadow: inset 3px 0 #2a3a5c; counter-increment: pwa;
+}
+.pwa__steps li::before {
+  content: counter(pwa); display: grid; place-items: center; width: 24px; height: 24px;
+  background: #3dffa2; color: #05070d; font: 400 10px/1 'Press Start 2P', monospace;
+}
+.pwa__steps b { color: #3dffa2; font-weight: 400; }
+.pwa__steps small { display: block; margin-top: 4px; font-size: 16px; color: #8a98ad; }
+.pwa-ico { display: inline-block; width: 18px; height: 18px; vertical-align: -3px; color: #3dffa2; }
+.pwa__install {
+  display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 48px; margin-top: 12px;
+  border: 0; background: #3dffa2; color: #05070d; box-shadow: 0 4px #0f4a33;
+  font: 400 11px/1 'Press Start 2P', monospace; cursor: pointer;
+}
+.pwa__install .pwa-ico { color: #05070d; }
+.pwa__install:active { transform: translateY(2px); box-shadow: 0 2px #0f4a33; }
+.pwa__skip {
+  display: block; margin: 14px auto 0; padding: 10px 12px; border: 0; background: none; color: #8a98ad;
+  font: 400 19px/1 'VT323', monospace; text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+@media (min-width: 560px) {
+  .pwa__card { padding: 24px 24px 14px; }
+  .pwa__body { grid-template-columns: 132px minmax(0, 1fr); gap: 22px; }
+  .pwa__char { width: 132px; height: 186px; }
+  .pwa__floor { width: 132px; }
+}
+@keyframes pwa-in { from { opacity: 0; transform: translateY(14px); } }
+@keyframes pwa-pop { from { transform: translateX(-50%) scale(0.4); } }
+@media (prefers-reduced-motion: reduce) { .pwa__card, .pwa__bubble.is-pop { animation: none; } }
+
+/* =====================================================================
+   Game HUD on a phone: me · modes · Menu on top, everything else in a drawer
+   ===================================================================== */
+.m-menu-btn, .m-scrim, .m-sheet__head { display: none; }
+.is-mobile body.demo { touch-action: manipulation; }
+.is-mobile #world { touch-action: none; }
+/* the desktop installers are no use on a phone */
+.is-mobile .mm-btn--dl { display: none; }
+.is-mobile .game { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
+
+.is-mobile .hud-top {
+  flex-wrap: nowrap; gap: 6px;
+  padding: calc(6px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) 6px calc(10px + env(safe-area-inset-left));
+  /* no backdrop-filter: it would make the fixed drawer below position itself inside the bar */
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+  background: linear-gradient(to bottom, rgba(6, 7, 9, 0.94), rgba(6, 7, 9, 0.7));
+}
+.is-mobile .hud-top .brand, .is-mobile .hud-meta, .is-mobile .hud-top .me-rank { display: none; }
+.is-mobile .me-btn { flex: none; height: 38px; padding: 0 4px; }
+.is-mobile .me-btn__txt, .is-mobile .me-btn kbd, .is-mobile .me-btn__title { display: none; }
+.is-mobile .modes { flex: 1 1 auto; min-width: 0; margin: 0; overflow: hidden; }
+.is-mobile .mode { flex: 1; justify-content: center; height: 38px; padding: 0 4px; letter-spacing: 0.4px; }
+.is-mobile .mode kbd { display: none; }
+.is-mobile .m-menu-btn { display: inline-flex; flex: none; position: relative; height: 38px; gap: 8px; padding: 0 12px; }
+.is-mobile .m-menu-btn[aria-expanded="true"] { border-color: var(--teal); background: rgba(5, 181, 177, 0.14); }
+.is-mobile .m-menu-btn.is-alert { border-color: var(--warn); }
+.is-mobile .m-menu-btn .ops-badge { position: absolute; top: -2px; right: -2px; margin: 0; }
+.m-burger { display: inline-flex; flex-direction: column; gap: 3px; }
+.m-burger i { display: block; width: 14px; height: 2px; background: currentColor; }
+/* the tutorial wants a button inside the closed drawer */
+.is-mobile:not(.is-m-sheet):has(.hud-actions .is-guide) .m-menu-btn { border-color: var(--signal); animation: guide 1.4s var(--ease) infinite; }
+
+/* the drawer: the old top bar groups, open side by side as tiles */
+.is-m-sheet .hud-top { z-index: 50; }
+.is-mobile .m-scrim {
+  display: block; position: fixed; inset: 0; z-index: 1;
+  background: rgba(3, 5, 10, 0.6); opacity: 0; pointer-events: none; transition: opacity 0.25s var(--ease);
+}
+.is-m-sheet .m-scrim { opacity: 1; pointer-events: auto; }
+.is-mobile .hud-actions {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 2;
+  display: flex; flex-direction: column; gap: 16px;
+  max-height: min(82vh, 640px); max-height: min(82dvh, 640px); overflow-y: auto; overscroll-behavior: contain;
+  margin: 0; padding: 0 calc(14px + env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
+  background: var(--panel); border-top: 2px solid var(--border-hi); box-shadow: 0 -16px 40px rgba(0, 0, 0, 0.6);
+  transform: translateY(105%); visibility: hidden;
+  transition: transform 0.32s var(--ease-out), visibility 0s linear 0.32s;
+}
+.is-m-sheet .hud-actions { transform: none; visibility: visible; transition: transform 0.32s var(--ease-out); }
+.is-mobile .m-sheet__head {
+  position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between;
+  margin: 0 -2px; padding: 16px 2px 10px; background: var(--panel); touch-action: none;
+  font: 400 12px/1 var(--font-pixel); color: var(--text);
+}
+.m-sheet__grab { position: absolute; top: 6px; left: 50%; width: 40px; height: 4px; margin-left: -20px; background: var(--border); }
+.is-mobile .hud-group { position: static; flex: none; min-width: 0; }
+.is-mobile .hud-group__btn {
+  width: auto; height: auto; padding: 0 2px; border: 0 !important; background: none !important; clip-path: none;
+  pointer-events: none; animation: none !important; justify-content: flex-start;
+  font: 400 10px/1 var(--font-mono); letter-spacing: 1.4px; text-transform: uppercase; color: var(--text-dim) !important;
+}
+.is-mobile .hud-group__btn .cur, .is-mobile .hud-group__caret, .is-mobile .hud-group__badge { display: none !important; }
+.is-mobile .hud-group__menu, .is-mobile .hud-group.is-closing .hud-group__menu {
+  position: static; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px;
+  min-width: 0; margin-top: 8px; padding: 0; border: 0; background: none; box-shadow: none; transform: none !important; opacity: 1 !important;
+}
+.is-mobile .hud-group__menu .btn {
+  position: relative; width: 100%; height: auto; min-height: 58px; padding: 8px 6px;
+  flex-wrap: wrap; align-content: center; justify-content: center; gap: 4px 6px;
+  white-space: normal; text-align: center; font-size: 12px; line-height: 1.2;
+}
+.is-mobile .hud-group__menu .btn[hidden] { display: none; }
+.is-mobile .hud-group__menu .btn kbd { display: none; }
+.is-mobile .hud-group__menu .btn .hud-lbl { display: inline; }
+.is-mobile .hud-group__menu .btn .ops-badge { position: absolute; top: 4px; right: 4px; margin: 0; }
+.is-mobile .hud-group__menu .bp-chip { width: 22px; height: 22px; }
+.is-mobile .hud-group__menu .bp-btn__lvl { position: absolute; top: 4px; right: 4px; }
+.is-mobile .hud-group__menu .is-guide { border-color: var(--signal); animation: guide 1.4s var(--ease) infinite; }
+
+/* money: one compact row under the bar (company cash · credits · Gold) */
+.is-mobile .econ {
+  top: calc(56px + env(safe-area-inset-top)); right: calc(10px + env(safe-area-inset-right)); bottom: auto; left: auto;
+  width: auto; display: flex; align-items: center; gap: 10px; padding: 5px 10px;
+}
+.is-mobile .econ__row--cash { display: inline-flex; }
+.is-mobile .econ__row--cash b { font-size: 13px; }
+.is-mobile .econ .eyebrow-sm, .is-mobile .econ__flow, .is-mobile .econ__pay { display: none; }
+.is-mobile .game:has(.tutorial:not([hidden])) .econ { display: none; }
+/* phones: the bottom corners hold the touch controls, so notifications stay under the top bar (compact, 2 at most) */
+.is-mobile .toasts, .is-mobile .game .toasts { top: calc(98px + env(safe-area-inset-top)); bottom: auto; left: 50%; right: auto; transform: translateX(-50%); width: min(360px, calc(100% - 32px)); }
+.is-mobile .hint, .is-mobile .minimap { display: none; }
+
+/* touch controls: joystick left, action right, emotes over the action; only while walking around */
+.is-mobile .game.is-build .touch, .is-mobile .game.is-crew .touch { display: none; }
+.is-mobile .touch__stick { left: calc(20px + env(safe-area-inset-left)); bottom: calc(20px + env(safe-area-inset-bottom)); }
+.is-mobile .touch__action { right: calc(22px + env(safe-area-inset-right)); bottom: calc(36px + env(safe-area-inset-bottom)); }
+.is-mobile .touch .emo { position: absolute; right: calc(34px + env(safe-area-inset-right)); bottom: calc(124px + env(safe-area-inset-bottom)); margin: 0; }
+.is-mobile .touch .ops-btn--emo { width: 48px; height: 48px; padding: 0; justify-content: center; background: rgba(10, 10, 11, 0.7); font-size: 22px; }
+.is-mobile .touch .ops-btn--emo .hud-lbl { display: none; }
+.is-mobile .emo__opt { height: 44px; }
+
+/* team chat: only when opened from the drawer, at the top so it never covers the joystick */
+.is-mobile:not(.is-m-chat) .team-chat { display: none; }
+.is-mobile .team-chat {
+  left: calc(10px + env(safe-area-inset-left)); right: calc(10px + env(safe-area-inset-right)); width: auto;
+  top: calc(56px + env(safe-area-inset-top)); bottom: auto; flex-direction: column; z-index: 9;
+}
+.is-mobile .team-chat__list { max-height: 34vh; }
+.is-mobile .team-chat .input { font-size: 16px; } /* 16px: iOS does not zoom into the field */
+
+/* the equipment panel sits above the touch controls (portrait) or between them (landscape) */
+.is-mobile .panel {
+  left: calc(10px + env(safe-area-inset-left)); right: calc(10px + env(safe-area-inset-right)); width: auto;
+  top: auto; bottom: calc(170px + env(safe-area-inset-bottom)); max-height: calc(100% - 240px);
+}
+.is-mobile .build { width: calc(100% - 20px); bottom: calc(10px + env(safe-area-inset-bottom)); max-height: 46vh; max-height: 46dvh; overflow-y: auto; overscroll-behavior: contain; }
+.is-mobile .crew-panel { left: 10px; right: 10px; width: auto; top: auto; bottom: calc(10px + env(safe-area-inset-bottom)); max-height: 46vh; }
+.is-mobile input, .is-mobile textarea, .is-mobile select { font-size: max(16px, 1em); }
+.is-mobile .overlay { padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)); }
+
+@media (orientation: landscape) {
+  .is-mobile .panel { left: auto; right: calc(120px + env(safe-area-inset-right)); top: calc(54px + env(safe-area-inset-top)); bottom: 10px; width: min(380px, 46vw); max-height: none; }
+  .is-mobile .team-chat { left: auto; width: min(380px, 50vw); }
+  .is-mobile .crew-panel { left: auto; width: min(420px, 55vw); top: calc(54px + env(safe-area-inset-top)); max-height: none; }
+  .is-mobile .hud-group__menu { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .is-mobile .hud-actions { left: max(0px, calc(50% - 360px)); right: max(0px, calc(50% - 360px)); }
+  .is-mobile .modes { flex: 0 1 420px; }
+  .is-mobile .m-menu-btn { margin-left: auto; }
+  .is-mobile .build { max-height: 62vh; max-height: 62dvh; }
+}
+@media (max-width: 380px) {
+  .is-mobile .m-menu-btn { padding: 0 10px; }
+  .is-mobile .m-menu-btn__lbl { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .is-mobile .hud-actions, .is-m-sheet .hud-actions, .is-mobile .m-scrim { transition: none; }
+}
+
+/* =====================================================================
+   Main menu on a phone: one column — the logo, a slim player bar, and the
+   buttons down where the thumb reaches. Same pixel windows as on the PC.
+   ===================================================================== */
+.is-mobile .title .mm {
+  display: flex; flex-direction: column; gap: 18px;
+  overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain;
+  padding: calc(16px + env(safe-area-inset-top)) calc(22px + env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) calc(22px + env(safe-area-inset-left));
+}
+.is-mobile .title.has-sub .mm { overflow: hidden; }
+.is-mobile .title .mm__logo, .is-mobile .title .mm__player, .is-mobile .title .mm__menu, .is-mobile .title .mm-weekly {
+  position: relative; inset: auto; width: auto; max-width: none; flex: none;
+}
+.is-mobile .title .dl-logo--sm { width: 216px; height: 37px; }
+
+/* player: one row — face, name, coins, a short "Sair" */
+.is-mobile .title .mm__player { flex-wrap: nowrap; gap: 12px; padding: 8px 10px; }
+.is-mobile .title .mm__me { flex: 1; min-width: 0; gap: 8px; }
+.is-mobile .title .mm__me canvas { width: 32px; height: 32px; flex: none; }
+.is-mobile .title .mm__me > span { min-width: 0; }
+.is-mobile .title .mm__me b { font-size: 20px; }
+.is-mobile .title .mm__me .eyebrow-sm { overflow: hidden; font-size: 11px; white-space: nowrap; text-overflow: ellipsis; }
+.is-mobile .title .mm__bal { flex: none; gap: 10px; }
+.is-mobile .title .mm-bal { gap: 4px; font-size: 20px; }
+.is-mobile .title .mm-bal .eyebrow-sm { display: none; }
+.is-mobile .title .mm__logout { flex: none; padding: 6px 8px 4px; font-size: 0; }
+.is-mobile .title .mm__logout::after { content: 'Sair'; font-size: 12px; }
+
+/* buttons: Novo jogo, Carregar and On-line across; Conta and Ideias side by side; no subtitles */
+.is-mobile .title .mm__menu { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: auto; padding: 0 4px; }
+.is-mobile .title .mm-btn { min-width: 0; min-height: 48px; padding: 8px 14px; gap: 12px; }
+.is-mobile .title .mm-btn__text b { font-size: 11px; }
+.is-mobile .title .mm-btn__text small { display: none; }
+.is-mobile .title .mm-btn[data-go="new"], .is-mobile .title .mm-btn[data-go="load"], .is-mobile .title .mm-btn[data-go="online"] { grid-column: 1 / -1; }
+.is-mobile .title .mm-btn[data-go="online"] { order: 1; }
+.is-mobile .title .mm-btn[data-go="account"] { order: 2; }
+.is-mobile .title .mm-btn[data-go="feedback"] { order: 3; }
+.is-mobile .title .mm-btn[data-go="new"] { --edge: #3dffa2; min-height: 58px; }
+.is-mobile .title .mm-btn[data-go="new"] .mm-btn__text b { font-size: 13px; color: #3dffa2; text-shadow: 0 2px #0f4a33; }
+.is-mobile .title .mm-btn[data-go="account"], .is-mobile .title .mm-btn[data-go="feedback"] { justify-content: center; padding: 8px 6px; }
+.is-mobile .title .mm-btn[data-go="account"] .mm-btn__icon, .is-mobile .title .mm-btn[data-go="feedback"] .mm-btn__icon { display: none; }
+.is-mobile .title .mm-btn[data-go="account"] .mm-btn__text, .is-mobile .title .mm-btn[data-go="feedback"] .mm-btn__text { flex: none; text-align: center; }
+
+/* Sala da semana: one slim strip at the bottom; the whole strip opens it */
+.is-mobile .title .mm-weekly { display: flex; align-items: center; margin: 4px 4px 0; }
+.is-mobile .title .mm-weekly__head { flex: none; padding: 12px; background: none; box-shadow: none; }
+.is-mobile .title .mm-weekly__title { font-size: 9px; line-height: 1.4; }
+.is-mobile .title .mm-weekly__body { flex: 1; min-width: 0; flex-direction: row; align-items: center; gap: 10px; padding: 8px 12px 8px 0; }
+.is-mobile .title .mm-weekly__thumb, .is-mobile .title .mm-weekly .mm-btn--small { display: none; }
+.is-mobile .title .mm-weekly__info { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.is-mobile .title .mm-weekly__name { overflow: hidden; font-size: 19px; white-space: nowrap; text-overflow: ellipsis; }
+.is-mobile .title .mm-weekly__time { font-size: 16px; }
+.is-mobile .title .mm-weekly__body::after { content: '>'; margin-left: auto; font: 400 12px/1 'Press Start 2P', monospace; color: #3dffa2; }
+
+/* landscape: logo, player and the weekly strip on the left, the buttons on the right */
+@media (orientation: landscape) {
+  .is-mobile .title .mm {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); grid-template-rows: auto auto 1fr;
+    column-gap: 32px; row-gap: 18px; align-content: stretch;
+  }
+  .is-mobile .title .mm__logo { grid-column: 1; grid-row: 1; }
+  .is-mobile .title .mm__player { grid-column: 1; grid-row: 2; }
+  .is-mobile .title .mm-weekly { grid-column: 1; grid-row: 3; align-self: end; }
+  .is-mobile .title .mm__menu { grid-column: 2; grid-row: 1 / 4; align-self: center; margin: 0; gap: 14px; }
+  .is-mobile .title .mm-btn { min-height: 44px; }
+  .is-mobile .title .mm-btn[data-go="new"] { min-height: 52px; }
+}
+
+/* =====================================================================
+   Menu sub-screens on a phone (Carregar jogo, Jogar online, Ideias e bugs,
+   Salas da semana): a slim header that stays on top, then the content
+   ===================================================================== */
+.is-mobile .title.has-sub .mm__logo { display: none; }
+.is-mobile .title .mm__view-body {
+  padding: calc(12px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
+}
+.is-mobile .title .mm__view-body .mv__head {
+  position: sticky; top: calc(-12px - env(safe-area-inset-top)); z-index: 3;
+  display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 10px 12px;
+  margin: calc(-12px - env(safe-area-inset-top)) -14px 16px; padding: calc(12px + env(safe-area-inset-top)) 14px 12px;
+  background: #0d1424; box-shadow: 0 2px #262f46;
+}
+.is-mobile .title .mv__head > :not(.mv__back):not(.mv__titles) { grid-column: 1 / -1; }
+.is-mobile .title .mv__back { padding: 8px 10px 6px; font-size: 13px; }
+.is-mobile .title .mv__titles .eyebrow-sm { display: none; }
+.is-mobile .title .mv__title { font-size: 14px; line-height: 1.3; text-shadow: 0 2px #0f4a33; }
+.is-mobile .title .mv__badge { justify-self: start; }
+.is-mobile .title .mv-tabs { display: flex; width: 100%; margin-bottom: 0; }
+.is-mobile .title .mv-tab { flex: 1; justify-content: center; min-height: 40px; padding: 8px 6px 6px; font: 400 13px/1 'Silkscreen', monospace; text-align: center; }
+.is-mobile .title .mm__view-body .btn { min-height: 40px; font-size: 13px; }
+.is-mobile .title .mv-note, .is-mobile .title .mv-empty p, .is-mobile .title .mv-online__text { font-size: 19px; }
+.is-mobile .title .mv-empty { padding: 22px 14px; }
+.is-mobile .title .mv-empty b { font-size: 22px; }
+.is-mobile .title .mv__soon { font-size: 16px; }
+
+/* Carregar jogo: name and date next to the map, the numbers under them, the buttons across */
+.is-mobile .title .mv-save { grid-template-columns: 48px minmax(0, 1fr); align-items: center; gap: 12px; padding: 12px; }
+.is-mobile .title .mv-save__map { width: 48px; height: 48px; }
+.is-mobile .title .mv-save__info { min-width: 0; gap: 4px; }
+.is-mobile .title .mv-save__info b { font-size: 22px; }
+.is-mobile .title .mv-save__info .eyebrow-sm { font-size: 11px; }
+.is-mobile .title .mv-save__stats { font-size: 17px; }
+.is-mobile .title .mv-save__acts { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+
+/* Jogar online: full-width fields and button */
+.is-mobile .title .mp-form { gap: 14px; }
+.is-mobile .title .mp-actions { flex-direction: column; align-items: stretch; gap: 10px; text-align: center; }
+.is-mobile .title .mp-world { padding: 10px; }
+.is-mobile .title .mp-world b, .is-mobile .title .mp-world small { font-size: 18px; }
+
+/* Ideias e bugs: no lead paragraph, the filters in one sliding row, buttons across */
+.is-mobile .title .fb-lead, .is-mobile .title .fb-sort > .eyebrow-sm, .is-mobile .title .fb-shot__empty > span { display: none; }
+.is-mobile .title .fb-bar { flex-direction: column; align-items: stretch; gap: 10px; }
+.is-mobile .title .fb-bar--list { flex-direction: row; align-items: center; }
+.is-mobile .title .fb-sub, .is-mobile .title .fb-sort { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 -14px; padding: 2px 14px; }
+.is-mobile .title .fb-bar--list .fb-sub { margin: 0; padding: 2px; }
+.is-mobile .title .fb-sub::-webkit-scrollbar, .is-mobile .title .fb-sort::-webkit-scrollbar { display: none; }
+.is-mobile .title .fb-pill { flex: none; white-space: nowrap; }
+.is-mobile .title .fb-bar > .btn, .is-mobile .title .fb-actions .btn { width: 100%; justify-content: center; }
+.is-mobile .title .fb-idea { gap: 10px; padding: 10px; }
+.is-mobile .title .fb-shot { padding: 10px; }
+
+/* Salas da semana: the highlight card, then a compact list (map left, name and numbers right) */
+.is-mobile .title .mv-room--top .mv-room__art { aspect-ratio: 16 / 8; }
+.is-mobile .title .mv-room__body { gap: 6px; padding: 12px 12px 4px; }
+.is-mobile .title .mv-room--top .mv-room__body > b { font-size: 28px; }
+.is-mobile .title .mv-room__body p { font-size: 19px; }
+.is-mobile .title .mv-room__by { font-size: 18px; }
+.is-mobile .title .mv-room__stats { gap: 14px; font-size: 17px; }
+.is-mobile .title .mv-room__acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px 12px 12px; }
+.is-mobile .title .mv-room__acts .btn { justify-content: center; padding: 8px 6px 6px; font-size: 11px; line-height: 1.2; text-align: center; }
+.is-mobile .title .mv-rooms { grid-template-columns: 1fr; gap: 14px; }
+.is-mobile .title .mv-rooms .mv-room { display: grid; grid-template-columns: 96px minmax(0, 1fr); }
+.is-mobile .title .mv-rooms .mv-room__art { aspect-ratio: auto; min-height: 96px; }
+.is-mobile .title .mv-rooms .mv-room__tag, .is-mobile .title .mv-rooms .mv-room__body p { display: none; }
+.is-mobile .title .mv-rooms .mv-room__body { min-width: 0; padding: 10px 12px 4px; }
+.is-mobile .title .mv-rooms .mv-room__body > b { overflow: hidden; font-size: 22px; white-space: nowrap; text-overflow: ellipsis; }
+.is-mobile .title .mv-rooms .mv-room__acts { grid-column: 1 / -1; }
+
+/* =====================================================================
+   Tutorial on a phone: a small card under the top bar with just what to
+   do now; the welcome card readable, with big buttons
+   ===================================================================== */
+.is-mobile .tutorial {
+  left: calc(10px + env(safe-area-inset-left)); right: calc(10px + env(safe-area-inset-right)); width: auto;
+  top: calc(54px + env(safe-area-inset-top)); padding: 8px 10px 6px;
+}
+.is-mobile .tutorial__head .eyebrow-sm { font-size: 9px; }
+.is-mobile .tutorial__title { margin-top: 4px; font-size: 15px; line-height: 20px; }
+.is-mobile .tutorial__text { display: none; }
+.is-mobile .tutorial__do { margin-top: 6px; padding: 7px 10px; font-size: 14px; line-height: 19px; }
+.is-mobile .tutorial__do b { color: #3dffa2; }
+.is-mobile .tutorial__progress { margin-top: 8px; }
+.is-mobile .tutorial__actions { margin-top: 2px; }
+.is-mobile .tutorial__actions .linkbtn, .is-mobile .tutorial__actions .btn { min-height: 32px; padding: 0 4px; font-size: 12px; }
+.is-mobile .game.is-crew .tutorial { display: block; }
+.is-mobile .game.is-crew .tutorial[hidden] { display: none; }
+@media (orientation: landscape) {
+  .is-mobile .tutorial { right: auto; width: min(360px, 46vw); }
+}
+
+.is-mobile .card--intro { padding: 22px 18px; }
+.is-mobile .card--intro .card__title { font-size: 28px; line-height: 32px; letter-spacing: -0.5px; }
+.is-mobile .card--intro .card__text { margin-top: 10px; font-size: 15px; line-height: 21px; }
+.is-mobile .card--intro .intro-steps { grid-template-columns: 1fr; margin-top: 16px; }
+.is-mobile .card--intro .intro-steps li { flex-direction: row; align-items: baseline; gap: 10px; padding: 8px 12px; font-size: 13px; }
+.is-mobile .card--intro .card__actions { flex-direction: column; align-items: stretch; gap: 10px; margin-top: 20px; text-align: center; }
+.is-mobile .card--intro .card__actions .btn { justify-content: center; min-height: 50px; font-size: 15px; }
+.is-mobile .card--intro .intro-menu { align-self: center; font-size: 15px; }
+
+/* terminal: the suggested command is a big button; "Enviar" next to the prompt; while typing, the
+   side panel shows only the current step so the keyboard leaves room for the output */
+.term__send { display: none; }
+.is-mobile .term__line { gap: 8px; }
+.is-mobile .term__send { display: inline-flex; flex: none; min-height: 36px; }
+.is-mobile .term__try {
+  display: inline-block; margin-top: 6px; padding: 8px 12px; cursor: pointer;
+  font-size: 14px; line-height: 18px; color: #05070d; background: #3dffa2; box-shadow: 0 3px #0f4a33;
+}
+.is-mobile .term__try::after { content: '  ↵ tocar para usar'; font-size: 11px; opacity: 0.7; }
+.is-mobile .term__try:active { transform: translateY(2px); box-shadow: 0 1px #0f4a33; }
+.is-mobile .term:has(#termIn:focus) .term__goal,
+.is-mobile .term:has(#termIn:focus) .term__steps li:not(.is-current),
+.is-mobile .term:has(#termIn:focus) .term__note { display: none; }
+.is-mobile .term__note { display: none; }
+
+/* =====================================================================
+   In-game windows on a phone: the close button always in reach, nothing
+   wider than the screen, tables turned into cards
+   ===================================================================== */
+/* while a side panel or conversation is open, the joystick steps aside (it was drawn over them) */
+.is-mobile .game:has(.ops-panel:not([hidden])) .touch,
+.is-mobile .game:has(.talk:not([hidden])) .touch { display: none; }
+.is-mobile .ops-panel {
+  left: calc(10px + env(safe-area-inset-left)); right: calc(10px + env(safe-area-inset-right)); width: auto;
+  top: calc(54px + env(safe-area-inset-top)); bottom: calc(10px + env(safe-area-inset-bottom)); max-height: none; z-index: 9;
+}
+.is-mobile .overlay--app { padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
+.is-mobile .cab, .is-mobile .mon, .is-mobile .hd, .is-mobile .nl { height: 100%; }
+
+/* Monitor: logo and × on the first line, the three tabs across the second */
+.is-mobile .mon__bar { flex-wrap: wrap; row-gap: 6px; padding: 8px 10px; }
+.is-mobile .mon__logo { order: 0; }
+.is-mobile #monClose { order: 1; margin-left: auto; }
+.is-mobile .mon__tabs { order: 2; flex: 1 0 100%; margin: 0; }
+.is-mobile .mon__tabs button { flex: 1; height: 40px; font-size: 14px; }
+.is-mobile .mon__range { display: none; }
+.is-mobile .mon__body { padding: 10px; }
+/* the hosts and problems tables become one card per line */
+.is-mobile .mon .ztable, .is-mobile .mon .ztable tbody { display: block; }
+.is-mobile .mon .ztable thead { display: none; }
+.is-mobile .mon .ztable tr {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
+  padding: 12px; border-bottom: 1px solid rgba(204, 204, 220, 0.1);
+}
+.is-mobile .mon .ztable td { display: block; padding: 0; border: 0; font-size: 14px; }
+.is-mobile .mon .ztable .zst { max-width: none; white-space: normal; }
+.is-mobile .mon .ztable td:last-child { margin-left: auto; }
+.is-mobile .mon .ztable td:last-child .btn, .is-mobile .mon .ztable td:last-child .linkbtn { min-height: 36px; }
+.is-mobile .mon .ztable__empty { flex: 1; }
+/* hosts: name · IP, then the type, then the numbers with their names */
+.is-mobile .mon .ztable tr[data-host] td:nth-child(1) b { font-size: 16px; }
+.is-mobile .mon .ztable tr[data-host] td:nth-child(3) { flex-basis: 100%; color: #8e8e8e; font-size: 13px; }
+.is-mobile .mon .ztable tr[data-host] td:nth-child(5)::before { content: 'CPU '; color: #8e8e8e; }
+.is-mobile .mon .ztable tr[data-host] td:nth-child(6)::before { content: 'RAM '; color: #8e8e8e; }
+.is-mobile .mon .ztable tr[data-host] td:nth-child(7)::before { content: 'Disco '; color: #8e8e8e; }
+.is-mobile .mon .ztable tr[data-host] td:nth-child(8)::before { content: 'Temp. '; color: #8e8e8e; }
+/* problems: time · severity · status, then what happened across, then how long and Investigar */
+.is-mobile .mon .ztable tr:not([data-host]) td:nth-child(4) { font-weight: 400; color: #fff; }
+.is-mobile .mon .ztable tr:not([data-host]) td:nth-child(5) { flex-basis: 100%; line-height: 1.35; }
+.is-mobile .mon .ztable tr:not([data-host]) td:nth-child(6)::before { content: 'há '; color: #8e8e8e; }
+.is-mobile .mon__hosthead { gap: 8px; }
+.is-mobile .mon__acts { width: 100%; margin-left: 0; }
+.is-mobile .mon__acts .btn { flex: 1; height: 38px; }
+
+/* Central de Atendimento: one column that never gets wider than the screen */
+.is-mobile .hd__bar { gap: 8px 12px; padding: 10px 12px; }
+.is-mobile .hd__stats { flex-basis: 100%; order: 3; gap: 8px 12px; }
+.is-mobile .hd__main { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(120px, 30%) minmax(0, 1fr); }
+.is-mobile .hd__side, .is-mobile .hd__conv { min-width: 0; }
+.is-mobile .hd__tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.is-mobile .hd__tabs button { flex: none; height: 32px; }
+.is-mobile .hd__msgs { padding: 12px; }
+.is-mobile .hd__chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.is-mobile .hd__chips > * { flex: none; }
+.is-mobile .hd__composer { padding: 10px 12px; }
+
+/* Passe: the title gets the room; the days left go under it */
+.is-mobile .bp-bar { flex-wrap: wrap; gap: 8px 12px; }
+.is-mobile .bp-logo { width: 48px; height: 48px; }
+.is-mobile .bp-title b { font-size: 12px; line-height: 1.3; }
+.is-mobile .bp-title span { font-size: 10px; }
+.is-mobile .bp-days { order: 5; flex-basis: 100%; justify-content: center; }
+
+/* Configurações: the keyboard list means nothing on a phone */
+.is-mobile #help .settings__sub, .is-mobile #help .controls { display: none; }
+.is-mobile #help .card__title { font-size: 26px; line-height: 30px; }
+.is-mobile #help .card__actions .btn { flex: 1; justify-content: center; min-height: 46px; }
+.is-mobile .setting__ctl input[type="range"] { flex: 1; min-width: 0; }
+.is-mobile .setting__ctl { width: 100%; }
+.is-mobile .bp-cta { height: auto; min-height: 52px; padding: 12px 14px; line-height: 1.5; white-space: normal; }
+
+/* =====================================================================
+   Glass on the start and back buttons (phones only): a tinted pane that blurs
+   what is behind it, with a lit rim. Only the surface changes: the labels keep
+   their pixel fonts (Press Start 2P, Silkscreen, VT323).
+   ===================================================================== */
+.is-mobile .title .title__start, .is-mobile .title .title__start:hover,
+.is-mobile .title .mm-btn, .is-mobile .title .mm-btn:hover:not(:disabled), .is-mobile .title .mm-btn:focus-visible:not(:disabled),
+.is-mobile .title .mv__back, .is-mobile .title .mv__back:hover, .is-mobile .title .mv__back:focus-visible {
+  --glass-tint: 255, 255, 255;
+  --glass-rim: rgba(255, 255, 255, 0.5);
+  border-radius: 16px !important; /* .demo * squares every corner with !important */
+  background: linear-gradient(180deg, rgba(var(--glass-tint), 0.24), rgba(var(--glass-tint), 0.07) 48%, rgba(var(--glass-tint), 0.13));
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  backdrop-filter: blur(14px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 var(--glass-rim),
+    inset 0 0 0 1px rgba(var(--glass-tint), 0.2),
+    inset 0 -6px 12px rgba(var(--glass-tint), 0.08),
+    0 8px 22px rgba(3, 5, 10, 0.45);
+}
+/* green glass: Iniciar, Novo Jogo, and any button under the finger (:hover sticks after a tap) */
+.is-mobile .title .title__start, .is-mobile .title .title__start:hover,
+.is-mobile .title .mm-btn[data-go="new"],
+.is-mobile .title .mm-btn:hover:not(:disabled), .is-mobile .title .mm-btn:focus-visible:not(:disabled),
+.is-mobile .title .mv__back:hover, .is-mobile .title .mv__back:focus-visible {
+  --glass-tint: 61, 255, 162;
+  --glass-rim: rgba(160, 255, 210, 0.75);
+}
+.is-mobile .title .title__start, .is-mobile .title .title__start:hover { color: #eafff4; text-shadow: 0 2px #0f4a33; }
+.is-mobile .title .mv__back:hover, .is-mobile .title .mv__back:focus-visible { color: #e6ecf5; }
+.is-mobile .title .title__start:active,
+.is-mobile .title .mm-btn:active:not(:disabled),
+.is-mobile .title .mv__back:active { transform: scale(0.97); }
+/* the sub-screen header lets the list show through, so the back button has something to blur while scrolling
+   (no backdrop-filter here: the button's own blur would stop seeing past this bar) */
+.is-mobile .title .mm__view-body .mv__head { background: rgba(13, 20, 36, 0.76); }
+@media (prefers-reduced-transparency: reduce) {
+  .is-mobile .title .title__start, .is-mobile .title .mm-btn, .is-mobile .title .mv__back {
+    -webkit-backdrop-filter: none; backdrop-filter: none; background: #1a2336;
+  }
+  .is-mobile .title .mm__view-body .mv__head { background: #0d1424; }
+}
+
+/* =====================================================================
+   On-screen keyboard (keyboard.js): while it is up over a text field,
+   whatever is being typed into moves into the part of the screen still
+   visible (--vvt … --vvh), nothing hidden behind the keys
+   ===================================================================== */
+/* any open window: laid out in the visible part, from the top */
+.is-mobile.is-kb .overlay.is-open {
+  place-items: start center;
+  padding-top: calc(var(--vvt, 0px) + 6px);
+  padding-bottom: calc(var(--kb, 0px) + 6px);
+}
+.is-mobile.is-kb .overlay.is-open > * { max-height: calc(var(--vvh, 100vh) - 12px); }
+/* the server console: the output, the prompt and the help panel all fit above the keys */
+.is-mobile.is-kb #terminal .term { height: calc(var(--vvh, 100vh) - 12px); max-height: none; }
+.is-mobile.is-kb #terminal .term__out { min-height: 0; }
+.is-mobile.is-kb #terminal .term__bar { padding-top: 4px; padding-bottom: 4px; }
+.is-mobile.is-kb #terminal .term__side { padding: 8px 10px; gap: 6px; }
+@media (orientation: portrait) {
+  /* (one column: the help shrinks to the current step, under the prompt) */
+  .is-mobile.is-kb #terminal .term__side { max-height: 30%; }
+}
+/* team chat: the list shrinks, the field stays right above the keys */
+.is-mobile.is-kb .team-chat { top: calc(var(--vvt, 0px) + 6px); bottom: auto; max-height: calc(var(--vvh, 100vh) - 12px); }
+.is-mobile.is-kb .team-chat__list { max-height: calc(var(--vvh, 100vh) - 110px); }
+/* build mode's search: the strip with the results rises above the keys; the rest of the bars wait */
+.is-mobile.is-kb .demo .build { bottom: calc(var(--kb, 0px) + 6px); }
+.is-mobile.is-kb .demo .build .build__cats, .is-mobile.is-kb .demo .build .build__subs, .is-mobile.is-kb .build-tools { visibility: hidden; }
+/* the side panels with fields (tasks, equipment): kept above the keys */
+.is-mobile.is-kb .ops-panel, .is-mobile.is-kb .panel, .is-mobile.is-kb .crew-panel { bottom: calc(var(--kb, 0px) + 6px); max-height: calc(var(--vvh, 100vh) - 66px); }
+.is-mobile.is-kb .touch { display: none; }

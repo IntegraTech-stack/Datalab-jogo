@@ -1,0 +1,639 @@
+DataLab — Construção, Personagens e Equipe trabalhando
+Estado em 01/10/2026 — implementação A–E concluída (ver STATUS no fim)
+=======================================================
+
+COMO RETOMAR
+Abra o Claude Code nesta pasta e diga:
+  "Leia PROXIMOS-PASSOS.txt e continue a implementação de onde parou."
+
+-------------------------------------------------------
+O QUE JÁ FOI FEITO (o jogo e a landing continuam funcionando, testado sem erros)
+-------------------------------------------------------
+1. assets/js/scene.js  (mudanças compatíveis com a landing)
+   - opções novas: world, renderFloor, zoom
+   - refreshWorld(floorChanged): redesenha o piso e a lista de desenho depois de editar o mapa
+   - screenToWorld(x, y): converte o mouse para coordenadas do mundo
+   - scene.actors (personagens criados), actor.sortKey, actor.hidden
+   - ganchos scene.underlay (grid embaixo dos objetos) e scene.lights (luz das luminárias)
+
+2. assets/js/sprites.js  (aditivo; os visuais atuais não mudaram)
+   - Personagens: poses sentadas (DL.makeSitSheet: digitando A/B, descanso, olhar para o lado, piscar),
+     de frente (down) e de costas (up)
+   - Cabelos novos: buzz, ponytail, afro, bob (+ os antigos short, bun, long, curly, cap)
+   - Aparência: L.body = 'f' | 'm' | 'n' (cintura e cílios / sobrancelhas)
+   - Roupas: L.outfit = 'tee' | 'shirt' | 'hoodie' | 'blazer' (+ L.vest para colete)
+   - Acessórios: L.glasses, L.beard, L.hat = 'cap' | 'beanie' (L.capColor), L.headset
+   - Item por função (L.role + L.roleColor): redes = cabo no ombro, servidores = cinto de ferramentas,
+     sysadmin = notebook, seguranca = rádio + dragonas, gerente = gravata, funcionario = só o crachá
+   - Objetos novos: rack modular (e.units com 9 slots), mesa (horizontal/vertical), monitor sobre mesa
+     (frente/costas), cadeira girada (rot 1), computador girado (rot 1, trabalhador de frente), sofá,
+     estante, bebedouro, quadro branco, tapete, luminária, cafeteira, vaso, lixeira, divisória de vidro horizontal
+   - DL.workScreen: tela animada por função ('net','srv','code','cam','doc','kpi'), ativada por e.work / e.typing
+   - DL.floorTile e DL.carpet expostos
+
+3. assets/js/build.js  (NOVO — ainda NÃO está ligado no demo.html)
+   - Salas como retângulos: DL.initRooms(world) converte o mapa DC-01 (NOC fixo + Salão)
+   - Paredes, divisórias de vidro e portas geradas automaticamente; DL.renderRooms desenha o piso
+   - Redimensionar sala, adicionar espaço a leste/ao sul, remover espaço vazio, trocar piso
+   - Catálogo (DL.CATALOG), grid, fantasma verde/laranja, validação (parede, porta, ocupado, pessoa no lugar)
+   - Selecionar, posicionar, mover (clique ou arrastar), girar (R), remover (Del/X), servidor/switch em rack,
+     monitor/cafeteira/vaso em cima de mesa
+   - DL.createBuilder(game) devolve: enter, exit, pointerMove/Down/Up, key, underlay, overlay, updateUi
+   - Espera um objeto "game" com: scene, toast(tom, titulo, texto), lockReason(item), actors(),
+     emit/on('world'), setMode(m), setCursor(c), focus(x, y), sfx(nome) (pode ser função vazia)
+
+-------------------------------------------------------
+O QUE FALTA
+-------------------------------------------------------
+A. demo.html
+   - Carregar build.js e crew.js depois de scene.js (antes de demo.js)
+   - Botões no HUD: Explorar / Construir (B) / Equipe (C)
+   - Dock de construção: <section class="build" id="build" hidden> com abas data-tab
+     (equip, furn, deco, room), ferramentas data-tool (select, remove), #buildItems, #buildRoom, #buildHint
+   - #inspector e #ghostTip dentro de .world-ui
+   - Modal de criação de personagem (#creator) e painel da equipe (#crewPanel)
+   - Atualizar textos de controles (intro/ajuda): B, C, mouse, R, Del
+
+B. assets/css/demo.css  (seguir o DESIGN: fundo escuro, pílulas com borda translúcida, cards 8px, Geist Mono em caixa alta)
+   - .build (dock embaixo), .tab, .tool, .cat-item, .chip, .stepper, .room-list, .room-ctl
+   - .inspector (+ .insp__head/.insp__actions/.insp__note, .linkbtn), .ghost-tip
+   - modal do criador: preview, amostras de cor (círculos), chips, cards de função
+   - painel da equipe e nametag acima do personagem
+   - .game.is-build esconde objetivo/minimapa/dica
+
+C. assets/js/crew.js  (NOVO, ainda não existe)
+   - Funções e cores: redes #a0c3ec, servidores #ffc285, sysadmin #c4b5fd, seguranca #ff7a17,
+     funcionario #dadbdf, gerente #7ee0a1; lanyard e crachá na cor da função
+   - Criador: nome, aparência, pele, cabelo + cor, roupa + cor, calça, acessórios, função,
+     botão "Aleatório", preview girando (em pé / andando / trabalhando)
+   - Pathfinding A* no grid (world.solid), com diagonais e suavização (scene.hits)
+   - Estações: computador (desk + desk.chair) e cadeira solta em frente a mesa com monitor
+   - Estados: ocioso (passeia) → indo até o PC → sentar (0,3 s) → trabalhando (alterna digitar/descansar/
+     olhar, pisca, e.work = modo da função, e.typing) → levantar → sair
+   - Tarefa com duração (≈45 s) ou "turno contínuo"; botão "Levantar"; toast ao concluir
+   - Posição sentado (ajustar vendo na tela): rot 0 → y = desk.py + 20, cadeira desenhada na frente;
+     rot 1 → y = desk.py - 2, sortKey = desk.sortY + 0.5
+   - Se a estação for movida/removida (evento 'world'), o personagem levanta
+   - NPCs antigos (Marina, Rafael, Júlia): sobrescrever scene.updateNpc para usar pathfinding
+     (hoje andam em linha reta e atravessariam objetos novos); adicionar 1-2 NPCs extras que passeiam por todos os espaços
+   - Card do personagem ao clicar: nome, função (cor), status, progresso, Atribuir / Levantar / Editar / Dispensar
+
+D. assets/js/demo.js (integração)
+   - Depois de criar a cena: DL.initRooms(W); scene.o.renderFloor = DL.renderRooms; scene.refreshWorld(true)
+     (ou passar world/renderFloor no construtor do DL.Scene)
+   - Criar o objeto "game" e instanciar builder e crew
+   - Eventos de mouse no canvas (pointerdown/move/up, contextmenu, wheel = zoom com scene.o.zoom + resize)
+   - No modo construção: WASD move a câmera, o jogador fica parado; esconder painel de equipamento
+   - scene.underlay / scene.overlay chamando builder.underlay/overlay (manter o overlay atual do objetivo)
+   - Ao mudar o mundo: refazer minimapa (tamanho variável), rótulos ("Fileira A/B" somem se a fileira mudar),
+     nomes dos espaços novos
+   - lockReason: bloquear SW-ACC-B, SW-CORE-01, PC-NOC-01/03, racks da fileira B e NOC-WALL até o incidente ser resolvido
+   - linkOf('rack') sem e.row deve mostrar "Uplink 10 Gb/s" (hoje mostraria "SW-ACC-undefined")
+   - findTarget/prompt: personagens criados → "Gerenciar"
+   - Texto final do objetivo / resumo: convidar a montar o datacenter (B) e contratar a equipe (C)
+
+E. Testes finais
+   - Movimento, construção (colocar/mover/girar/remover, redimensionar sala, novo espaço),
+     criação de personagem, ida até o computador, sentar e animação, NPCs desviando de objetos,
+     landing (index.html) sem alterações visuais
+   - Teste automático rápido: node smoke.js com puppeteer-core e o Chrome instalado
+
+-------------------------------------------------------
+STATUS (01/10/2026, segunda sessão) — A, B, C, D e E FEITOS
+-------------------------------------------------------
+- demo.html: build.js + crew.js carregados; HUD Explorar / Construir (B) / Equipe (C);
+  dock de construção, #inspector, #ghostTip, #crewCard, #nametags, painel #crewPanel,
+  modal #creator; textos de controles e resumo final atualizados.
+- demo.css: estilos do dock, inspector, criador, painel/card da equipe, nametags;
+  .game.is-build esconde objetivo/minimapa/dica.
+- crew.js (novo): funções/cores, criador com prévia (em pé/andando/trabalhando), A* com
+  diagonais + suavização, estações (computador e cadeira solta + mesa com monitor),
+  estados ocioso → indo → sentar → trabalhando → levantar, tarefa de 45 s ou turno contínuo,
+  NPCs antigos com pathfinding + 2 NPCs novos (Theo, Bia) que passeiam por todos os espaços.
+- demo.js: salas via DL.initRooms/DL.renderRooms, objeto "game" (G), mouse/zoom, câmera WASD
+  fora do modo explorar, travas do incidente, minimapa/rótulos refeitos ao mudar o mundo,
+  "Gerenciar" no prompt, alerta só dispara no modo explorar.
+- Testado com puppeteer-core + Brave (sem erros de console): construir/mover/girar/remover,
+  redimensionar sala, novo espaço, contratar pela UI, mandar para o PC por clique, sentar
+  (3 orientações conferidas em captura), levantar ao girar a estação, ninguém preso em objetos,
+  landing sem alterações.
+
+IDEIAS PARA DEPOIS
+- Salvar mundo e equipe (localStorage) entre sessões
+- Construção em telas de toque (hoje é pensada para mouse)
+- Sons (game.sfx ainda é função vazia)
+
+-------------------------------------------------------
+STATUS (01/10/2026, terceira sessão) — DEMO "COMECE DO ZERO"
+-------------------------------------------------------
+- A demo nasce num terreno 10×9 com uma sala "Entrada" (DL.newWorld em build.js).
+  O mapa DC-01 e o incidente saíram da demo; continuam na landing (world.js intocado).
+- Construção (aba Espaços): terreno expansível (+/−), Nova sala (arrastar), Parede (dividir
+  sala / clicar na divisória para unir), Porta (abrir/fechar tiles da divisória), bordas da
+  sala arrastáveis, piso técnico/carpete, remover sala. Salas vizinhas ganham porta automática.
+- Tutorial (tutorial.js): Continuar | Pular na abertura; 6 passos que avançam sozinhos e
+  destacam o botão certo; pular entra direto no modo construção.
+- scene.js: opções compatíveis world.hasVideoWall (false = sem painel do NOC) e o.padBottom.
+- Teste: play.js (puppeteer-core + Brave) percorre o tutorial inteiro só com cliques/teclas.
+
+-------------------------------------------------------
+STATUS (01/10/2026, quarta sessão) — PRESETS, BOTS VIVOS, TERMINAL
+-------------------------------------------------------
+- Abertura: escolher "Do zero" ou preset (Escritório pequeno, NOC, Datacenter pequeno,
+  Datacenter médio) + Continuar | Pular tutorial. presets.js monta salas e coloca tudo
+  via builder.api.place (mesmas regras do jogador) → tudo editável depois.
+- ops.js: cada servidor/switch no rack vira equipamento (SRV-01 / SW-01, IP 10.0.1.x,
+  estado novo → cabo → online, ou falha). Falhas surgem com o tempo; os bots descobrem
+  (inspeção ou monitoramento) e avisam: "⚠️ Servidor SRV-01 apresenta falha de conexão".
+  Painel Tarefas (T) lista instalação/configuração e ocorrências + registro.
+- terminal.js: shell Linux simulado (ip addr/link/route, ping, systemctl, curl, df, du,
+  journalctl, sudo...) e CLI de switch (enable, sh int status, conf t, int, shut/no shut).
+  Lições: setup, link, service, disk, port. Passos avançam pelo efeito, não por texto exato.
+  "Precisa de ajuda?": comando, exemplo, o que faz, quando usar (pulsa após 2 tentativas).
+- crew.js: rotina automática por função (inspecionar / trabalhar no PC / circular),
+  "Rotina ligada/desligada" no card, aviso "!" no nome de quem reportou.
+- Tutorial: 9 passos (Construção 4, Equipe 2, Técnico 3).
+- Testes: tech.js (presets, tutorial completo digitando no terminal, bots achando falhas,
+  5 lições) e play.js (salas/paredes/portas) — sem erros. Landing intocada.
+
+-------------------------------------------------------
+STATUS (01/10/2026, quinta sessão) — CABOS + MONITORAMENTO
+-------------------------------------------------------
+- Patch panel no catálogo (B → Equipamentos). Portas: servidor eth0; switch gi0/1–24 + te1
+  (uplink); patch f1–12 (frente) ↔ r1–12 (trás).
+- ops.js: cabos (links), trace() servidor → (patch) → switch, classificação ok/incompleto/
+  incorreto/solto, falha "cable" (cabo solto), health() e falhas que se resolvem sozinhas
+  quando a causa é corrigida. Presets já vêm cabeados (alguns via patch panel) e um rack
+  bagunçado nos datacenters.
+- cabling.js: vista SVG dos racks da sala; clicar/arrastar entre portas; cores por estado;
+  cabo solto pendurado; "Organizar cabos" (curvas → organizadores laterais + bandeja).
+- monitor.js (M): métricas simuladas (CPU, RAM, disco, rede, temperatura, disponibilidade),
+  gatilhos estilo Zabbix (severidades), painéis estilo Grafana, Hosts, Problemas,
+  página do host com dicas progressivas de investigação. Host fora do ar = gráfico quebrado.
+- Fluxo: falha → monitor detecta (~2 s) → NPC avisa → investigar (monitor/terminal/
+  cabeamento) → resolver → problema RESOLVIDO e gráficos voltam.
+- terminal.js: NO-CARRIER no ip link/addr, lição "cable" com botão para o cabeamento,
+  progresso salvo no equipamento. Tutorial: 10 passos (+ "Veja no monitoramento").
+- Testes: cab.js (novo), tech.js e play.js — sem erros. Landing intocada.
+
+-------------------------------------------------------
+STATUS (02/10/2026, sexta sessão) — PERSONAGEM, EQUIPE AUTÔNOMA, CHAT, EVOLUÇÃO
+-------------------------------------------------------
+- Meu personagem (P ou botão no HUD): nome, aparência, pele, cabelo, roupa/uniforme, calça,
+  acessórios (óculos, barba, headset, brincos, colete, boné/gorro) e função. Salvo no localStorage
+  (datalab.player.v1). sprites.js: roupa "uniform" (gola + faixa refletiva na cor da função) e brincos.
+- jobs.js (novo): tarefas reais por função (redes: verificar switch, organizar cabos, testar conexão,
+  resolver falha de rede, documentar; servidores: instalar servidor de verdade, verificar hardware,
+  configurar serviço, resolver falha de hardware, refrigeração; sysadmin: configurar sistema, analisar
+  alertas, resolver incidente, backups, atualizações; segurança, assistente, gerente). Habilidades,
+  XP, nível (1–10) e estrelas (1–5).
+- teamchat.js (novo): chat da equipe (K) + balões sobre os bots. Falas ligadas ao estado real
+  (temperatura, cabos, servidores pendentes, falhas), pedidos de ajuda e respostas.
+- crew.js: bots sempre ocupados (falhas → tarefas da função → pausas sociais → reconhecer o espaço).
+  Clique para: parar e olhar para o jogador. Card com estrelas, nível, XP e habilidades; "Atribuir
+  tarefa" lista só as tarefas da função (indisponíveis com motivo). Dispensar: chora, anda até a
+  Entrada/Recepção e some. Falhas achadas: 45 s para o jogador resolver, depois a equipe resolve.
+- ops.js: eventos 'fault' / 'fixed' / 'observe' / 'announce' e fix(d, quem).
+- Testes: team.js (novo) + play.js, tech.js, cab.js (com o clique no menu de tarefas) — sem erros.
+
+-------------------------------------------------------
+STATUS (02/10/2026, sétima sessão) — IDENTIDADE DAS SALAS
+-------------------------------------------------------
+- decor.js (novo): estilo por sala (room.style ou room.theme do preset): piso (técnico, carpete,
+  madeira, cimento, porcelanato, xadrez, grade neon) + cor; paredes (lisa, acústica, tijolo, ripada,
+  concreto, faixa neon) + cor; teto/iluminação (automática, fria, neutra, quente, baixa, clara);
+  RGB dinâmico (cor, intensidade, áreas teto/paredes/piso/móveis, efeito estático/suave/onda/arco-íris)
+  desenhado em scene.lights, só nas bordas (não lava os equipamentos).
+- Temas: NOC, Servidores, Gamer RGB, Cyberpunk, Industrial, Minimalista, Corporativo + "Decorar com o
+  tema". Presets: NOC → noc, salas de servidores → servers, escritórios → corporate.
+- Aba "Temas" (catálogo): tapetes robô / Claude / ChatGPT / gamer, quadro/pôster, neon, relógio
+  (parede do fundo), fliperama, pufe, tubo de LED, PC gamer e bonsai (sobre mesa), holograma,
+  carrinho de ferramentas, banner.
+- Aba "Estilo da sala" no modo construção; inspetor com estilos por objeto (cor da mesa, cadeira
+  gamer/executiva, monitor branco/RGB, espécie da planta, cor do sofá/tapete/luminária, arte do pôster…).
+- build.js: itens de parede (camada própria, exigem parede alta ao norte), tapetes genéricos (e.rug),
+  renderRooms por sala. sprites.js: cor/variante opcionais (padrão idêntico).
+- Testes: decor-test.js e themes.js (novos) + team.js, play.js, tech.js, cab.js e landing — sem erros.
+
+-------------------------------------------------------
+STATUS (02/10/2026, oitava sessão) — ECONOMIA, RECOMPENSAS, CONVERSA COM BOTS
+-------------------------------------------------------
+- economy.js (novo): valores em DL.ECON (1 s real = 1 min de jogo).
+  Créditos: tarefa da equipe (6 pedida / 2 rotina), servidor configurado (50), incidente resolvido
+  (30 + até 40 se rápido; metade se a equipe resolveu), 1/h por servidor saudável, datacenter concluído (200).
+  DataCoins: saldo separado; loja simulada via DL.Payments (provider 'mock', sem cobrança) — trocar
+  por gateway real com confirmação no servidor antes de creditar.
+  Empresa: receita $18/min por servidor saudável, folha $6/min por pessoa, prejuízo por problema
+  (offline 120, porta 90, serviço 80, disco 40 $/min) que cresce até 3× quanto mais demora.
+  Etiqueta "Prejuízo: -$X/min" sobre o rack, linha no painel Tarefas, card no HUD (acima do minimapa)
+  e janela Finanças e progresso (saldos, extrato, checklist do datacenter, loja).
+  "Datacenter concluído": 2 servidores online, switch, estação, 2 pessoas, 1 servidor configurado
+  pelo jogador, sem incidentes. Marcos genéricos em DL.ECON.milestones (a cada 20 → 100 DataCoins)
+  com tela de recompensa. Carteira salva no localStorage (datalab.wallet.v1).
+- talk.js (novo): clique num funcionário → Conversar. Respostas por regras conforme função, nível,
+  tarefa atual, falhas, rede, finanças e checklist; pode descobrir falhas não registradas, mandar
+  resolver, chamar quem resolve, mostrar no mapa, abrir terminal/cabeamento. Avisos espontâneos
+  ("quer falar com você") quando acha falha ou o prejuízo passa de $3.000.
+- ops.js: eventos 'server-online' e 'fixed' com tempo aberto e prejuízo; linha de prejuízo nas Tarefas.
+- crew.js: botão Conversar no card, 💬 no nome, evento 'job-done', api.fixDefFor.
+- Testes: econ-test.js (novo) + decor-test.js, team.js, play.js, tech.js, cab.js e landing — sem erros.
+
+-------------------------------------------------------
+STATUS (02/10/2026, nona sessão) — TELA INICIAL + MENU PRINCIPAL
+-------------------------------------------------------
+- Fluxo: demo.html → tela inicial (logo DATALAB animado + INICIAR / Enter) → menu principal →
+  Novo jogo → cartão de início existente (#intro: preset + tutorial). "← Menu principal" no cartão volta.
+- menu.js (novo) + menu.css (novo): roda depois do demo.js usando window.DataLabDemo. O datacenter
+  médio vivo (scene.o.attract) é o fundo; HUD escondido com .game.is-title. Teclado do menu em
+  captura (não dispara o Enter→begin do demo.js). Esc volta, ↑/↓ navegam.
+- Carregar jogo: DL.Saves (localStorage datalab.saves.v1: list/get/put/remove). Ainda não serializa o
+  mundo: "Continuar" recomeça do preset do save. Ligar aqui quando existir salvar mundo/equipe.
+- Jogar online: tela "O modo online está em desenvolvimento." · Loja: itens com DataCoins/créditos da
+  carteira real (economy.earn) + pacotes via DL.Payments mock; comprados em datalab.shop.v1 (sem efeito
+  no jogo ainda) · Marketplace, Tabela global, Amigos, Salas da semana: mocks (avatares gerados pelo
+  criador de personagens, miniaturas desenhadas a partir dos presets; "Começar com esta base" usa o preset).
+- Testado com puppeteer-core + Brave (1440×900 e 390×844): todas as telas, Esc, compra, novo jogo,
+  voltar ao menu, tutorial, pular tutorial, carregar save — sem erros. Landing intocada.
+
+-------------------------------------------------------
+STATUS (02/10/2026, décima sessão) — PAREDES LIVRES, PORTAS INDEPENDENTES, SALAS POR REGIÃO
+-------------------------------------------------------
+- build.js (modelo novo):
+  · world.areas = retângulos de piso (o que antes era world.rooms; "Nova sala", terreno, bordas).
+  · world.wallSet = Map "x,y" → "material:eixos" (solid|glass : h, v, hv). Paredes livres na grade,
+    1 tile, tile 'w' (sólido). Divisórias entre áreas viram paredes de vidro na 1ª vez (world.gapsSeen)
+    e ganham porta centralizada; depois são paredes comuns (dá para apagar trechos).
+  · Portas = itens kind 'door' (axis h/v, len 1|2, rot 0–3 = dobradiça × lado que abre, hold).
+    Tile 'D' (parede horizontal) / 'd' (vertical) é passável; keepClear na frente. Porta sem parede
+    embaixo é descartada no layout. Abrem sozinhas quando alguém chega (tickDoors).
+  · world.rooms = regiões de piso conectadas (flood fill; paredes e portas separam). Cada sala herda
+    id/nome/tipo/visual da sala anterior com mais sobreposição; pedaço novo copia o visual com nome novo.
+    Campos: x,y,w,h (caixa), n (tiles), doors, lx/ly (rótulo), type.
+  · Ferramentas (aba Espaços): Selecionar · Nova sala · Parede (arrastar reta; Shift apaga; R material)
+    · Cômodo (retângulo de 4 paredes) · Apagar parede · Porta · Porta dupla. Fantasma verde/laranja/
+    vermelho + dica com o tamanho. Tipos de sala: NOC, Servidores, Escritório, Recepção, Sala elétrica,
+    Personalizada (nome editável). Aviso "sem porta".
+  · api: buildWall, eraseWall, placeDoor, setRoomType, renameRoom (wallClick/doorClick saíram).
+- demo.js: rótulos usam r.lx/r.ly; minimapa mostra paredes e portas. tutorial.js: sugestão usa areas.
+- Testado (puppeteer + Brave): 5 salas + corredor por arraste, portas colocar/mover/girar/remover,
+  apagar trecho une salas e refazer separa, 20 rotas entre salas ok, jogador atravessa porta e para na
+  parede, 6 NPCs por 20 s sem ficar presos, presets, tutorial, estilo de sala, menu — sem erros.
+
+-------------------------------------------------------
+STATUS (02/10/2026, 11ª sessão) — SETUPS DE MESA + CARGOS PERSONALIZADOS
+-------------------------------------------------------
+- Setups (sprites.js DL.DESK_SETUPS, build.js catálogo): todos continuam kind 'desk' (estação da equipe)
+  com e.setup: mono1, mono2 (padrão), mono3, mono4 (braço 2×2), gamer (ultrawide curvo + RGB),
+  gamerpc (gabinete RGB de vidro sobre a mesa), tech (notebook + multímetro), noc (painel superior +
+  3 monitores, telas laterais de indicadores/rede/câmeras), admin (notebook, documentos, cadeira
+  executiva). Toda mesa tem PC (gabinete embaixo com LED, ou RGB). Inspetor: "Setup" troca no lugar.
+  Presets usam os setups novos.
+- roles.js (novo): cargo = configuração validada (sanitize) → tarefas reais (compose) em
+  DL.JOBS.BY_ROLE[id], registrado em DL.ROLES/ROLE_SKILL/SECOND_SKILL. Campos: nome, título, descrição,
+  cor, tela, habilidade principal/secundária, req (mínimo ao contratar), tarefas {id, freq 0|1|3},
+  equip (pc, st:noc/tech/admin/gamer, rack, switch, storage, crac, coffee), areas (any ou tipos de
+  sala), detects (link, cable, port, service, disk), fix, social, script (só guardado, NUNCA executado).
+  Biblioteca = tarefas padrão + genéricas novas (pccheck, helpdesk, inspect, watch, power, train, clean).
+  Filtros: área pela sala do alvo (DL.roomTypeOf: tipo → tema → nome), estações por setup (def.stationOk).
+  Salvo em localStorage datalab.roles.v1. Excluir cargo → membros viram Assistente.
+- "Criar cargo com IA": DL.RoleAI.generate(texto) — interpretador local por regras (palavras-chave →
+  tarefas, habilidades, equipamentos, áreas, problemas, rotina); DL.RoleAI.remote é o gancho para um
+  modelo de verdade (resultado passa pelo mesmo sanitize + prévia). Prévia mostra rotina e avisos
+  (ex.: sala do tipo pedido ainda não existe) e só entra no jogo ao Aprovar.
+- UI: Equipe → Cargos (lista, IA, Novo cargo, Avançado/JSON); criador lista cargos criados; Contratar
+  abre o criador com o cargo marcado.
+- crew.js: lista de funções dinâmica, estações filtradas por tarefa, api.hireAs. jobs.js expõe fixTask
+  e helpers. talk.js: especialidade de cargos criados vem de detects.
+- Testes: setups (normal/girado), IA→prévia→aprovar→contratar→bots fazendo as tarefas, cargo manual,
+  avançado (JSON inválido, tarefa desconhecida ignorada, cor inválida, script não executado),
+  Operadora de NOC só em estação NOC detectando e resolvendo serviço parado, exclusão, persistência;
+  regressão: paredes, tutorial, menu — sem erros.
+
+-------------------------------------------------------
+STATUS (02/10/2026, 12ª sessão) — CENTRAL DE ATENDIMENTO + LABORATÓRIO DE REDES
+-------------------------------------------------------
+- helpdesk.js (novo, H ou botão Atendimento): clientes abrem chamados (cenários com falas, habilidade,
+  dificuldade, palavras que avançam a conversa). Fila → bot assume (Assistente/cargos com suporte
+  primeiro, depois especialista pela habilidade) → cumprimenta, pergunta, investiga → resolve (chance
+  por habilidade) ou transfere para quem sabe mais ("Vou transferir para o(a) Técnico(a) de redes …",
+  aviso no chat da equipe) ou para o jogador. Status: aguardando, em atendimento, transferido,
+  resolvido. Jogador: vê ao vivo (digitando…), entra na conversa, assume, responde (sugestões),
+  resolve, devolve, transfere; "Receber atendimentos" manda os novos direto para ele. Ticket "Site fora
+  do ar" nasce de falha real (ops) e fecha quando ela é corrigida. Histórico em datalab.helpdesk.v1;
+  créditos por atendimento. Bot atendendo senta numa estação (prefere setup 'support' ou sala tipo
+  'support'). Novo: tipo de sala "Atendimento" e "Estação de atendimento" (telefone + headset).
+- netlab.js (novo, L ou botão Lab): PCs, servidores, switches (8 portas, VLAN access/trunk), roteadores
+  (3 interfaces, shutdown, rotas estáticas, rota padrão). Simulação: camada 2 por cabos/VLANs, camada 3
+  com gateway e rotas; ping exige ida E volta. Console: ipconfig, ip addr, ping, tracert/traceroute,
+  nslookup (DNS em servidor), show ip interface brief / ip route, show vlan brief / interfaces status.
+  "Configuração inválida" (o que / por quê / entenda / como corrigir) e "Por que falhou" em pings.
+  Testar rede = matriz de alcance. 5 desafios com metas verificadas, dicas progressivas e "Entenda";
+  +25 créditos na 1ª vez. Modo livre salvo (datalab.netlab.v1).
+- demo.js: G.canHotkey, helpdesk.update no loop, overlays na lista. apps.css (novo) + HUD compacto.
+- Testes: hd-test (fila, bots, transferência bot→bot, jogador resolve pelo chat, recebe direto,
+  transfere, site + falha real, histórico), nl-test (5 desafios, validações, rotas, DNS, persistência),
+  sup-test (estação de atendimento) + regressão (menu, paredes, tutorial, cargos, NOC) — sem erros.
+
+-------------------------------------------------------
+STATUS (02/10/2026, 13ª sessão) — EMPRESA: GERENTE → TÉCNICOS → EQUIPAMENTOS → SERVIÇOS
+-------------------------------------------------------
+- crew.js: cada bot tem Estação própria (c.home) e Setor (c.zone = id da sala), escolhidos no cartão
+  (selects) ou no painel da mesa ("Estação de"); padrão automático por cargo ao contratar. Tarefas de
+  rotina pesam ×3 dentro do setor; "reconhecer o espaço" e pausas ficam no setor. Cargo novo
+  "Técnico de TI" (tecnico). Tarefa kind 'repair': toBroken → pickup → carry → repairing (bancada:
+  mesa técnica, mesa, estante ou carrinho) → return → installing. Poses de ação (falar / mãos no
+  equipamento) e caixa carregada desenhada na overlay.
+- sprites.js: DL.makeActSheet (talk, reach, wave) + item do cargo tecnico. Aditivo.
+- staff.js (novo): manutenção (PCs e switches quebram; switch quebrado derruba os servidores atrás
+  dele — ops.health why 'switch'), ordens de serviço (repair, fix, cable, install-server/rack/crac,
+  expand-room) com despacho, acompanhamento, 3 tentativas; gerente: tarefas needs/follow/expand
+  (jobs.js) que abrem ordens; clientes NPC só na sala do tipo Recepção; chat da equipe com o jogador
+  (evento 'team-say': quem é citado responde; "vá para a <sala>", "ordens?", "VMs?").
+- infra.js (novo, tecla I): especializações de servidor (DL.SVC: web, db, game, ai, storage, virt,
+  dns, mail, corp, net) com necessidades/dependências e DL.svcFactor (economia); DataLab VE:
+  nós = servidores "Virtualização"; VMs criar/iniciar/desligar/reiniciar/remover, uso simulado,
+  gráficos, DL.vmRevenue. Presets recebem especializações e 1 nó com 3 VMs.
+- demo.js: F senta/levanta na estação mais próxima (digitação animada), fala (boca) ao mandar
+  mensagem, mãos no equipamento com o painel aberto, aceno ao chamar alguém; Enter foca o chat.
+- Testes (puppeteer + Brave): reparo completo de switch e PC, ordem de rack executada, clientes
+  sempre na recepção, chat jogador→bots, sentar/levantar, cartão estação/setor, VM criar/desligar/
+  remover, especialização, tutorial e landing — sem erros.
+  Obs.: ao pular o menu num teste, desligue scene.o.attract (senão a câmera fica passeando).
+
+-------------------------------------------------------
+STATUS (03/10/2026, 14ª sessão) — ECONOMIA, TERMINAL, MODOS, ATENDIMENTO, ESCALAS, VIDA DOS BOTS
+-------------------------------------------------------
+- difficulty.js (novo): modos Iniciante / Intermediário / Experiente (DL.learn(), DL.setLearn()).
+  Escolha no cartão inicial; selo no HUD e no terminal. Muda ajuda do terminal, dicas da equipe,
+  intervalo entre incidentes, tempo antes da equipe resolver sozinha e recompensa (0,7× / 1× / 1,35×).
+- director.js (novo): ritmo de incidentes — 180 min de calma no início, um problema por vez,
+  150 min entre inícios, 80 min de respiro após resolver; crítico (switch quebrado) pode furar a fila
+  (máx. 2 abertos). ops.js e staff.js pedem permissão a ele. Fora do Experiente, 80% das falhas são de
+  tipos que alguém de plantão sabe resolver.
+- economy.js: salário individual por pessoa (cargo × nível × fator pessoal), pago todo mês à 00:00
+  (1 dia no relógio = 1 mês); contratação custa meio salário; prejuízos menores (35/25/22/12 $/min,
+  máx. 2×). HUD: linha "Folha $X · em Y"; Finanças: folha por pessoa e próximo pagamento.
+- shifts.js (novo) + janela Escalas (Equipe → Escalas): turnos prontos ou horário personalizado;
+  fora do turno o bot termina o importante, sai pela recepção e volta no horário. Plantão por turno
+  (Manhã/Tarde/Noite): 1 técnico + 1 atendente; chamado quando o turno fica sem ninguém do tipo.
+- workplace.js (novo): recursos por cargo (Computador, Bancada, Rack, Balcão na recepção, Recepção)
+  checados no setor. Falta → reclama no chat, trabalha 1,5× mais devagar, ⚠ no nome/lista/cartão.
+  Setor automático prefere salas que têm o que o cargo precisa; bots ficam no setor (rotina fora ×0,15).
+- Cargo novo Atendente; atendimento Computador / Presencial / Ambos (cartão). Presencial (staff.js):
+  cliente entra → atendente percebe → vai até ele → conversa → resolve (venda), encaminha ao gerente
+  ou abre chamado no Atendimento (H). Falha real vira reclamação do cliente.
+- Vida dos bots (crew.js): pausa de café/água (busca, leva o copo, bebe, volta), descanso no pufe/sofá;
+  ocasionais e interrompidas por qualquer coisa urgente.
+- Conversas: threads por tema e contexto (jobs.js DL.TALK.thread), sem repetir; gírias (vc, tbm, tl,
+  blz, qnd…) no chat e na conversa (talk.js DL.normSlang); relatórios de rotina ocasionais e sem eco.
+- Terminal: rolagem corrigida (grid minmax 0), saída limitada a 600 linhas, não puxa para baixo
+  enquanto você lê, passo atual sempre visível, seleção de texto não perde foco; painel Tarefas é um
+  único contêiner com cabeçalho fixo; chat da equipe mantém a posição de leitura.
+- Testes (puppeteer-core + Chrome, no scratchpad): test-all.js (34 checagens), econ.js (4 presets ×
+  3 modos, 26 h de jogo), regress.js (landing, menu, tutorial, construção, apps, mobile 390×844).
+  DataLabDemo.advance(seg) acelera a simulação sem desenhar.
+-------------------------------------------------------
+STATUS (05/10/2026, 16ª sessão) — TERRENO PAGO, GOLD, LOJA, INVENTÁRIO, SKINS, BOTS LENDÁRIOS
+-------------------------------------------------------
+- Terreno (build.js + economy.js): expansão paga com o caixa da empresa (DL.lotPrice: $/m² novo ×
+  (área do terreno/90)^1,05 × (1 + área construída/600)); 1ª expansão grátis (kit.lot). "+" pede
+  confirmação com preço e caixa depois; "−" reduz sem reembolso. api.lotQuote / api.buyLot;
+  api.resizeLot continua grátis (presets/testes). Tutorial: passo 1 guia até "Confirmar".
+- Moedas: DataCoins virou Gold (moeda dourada, W.gold; saldo antigo migrado + 100 de boas-vindas).
+  Empresa ($) = infra/terreno/salários; Gold = skins, itens especiais, bots lendários. economy.spend,
+  economy.exchange (10 créditos = 1 Gold), +20 Gold por datacenter concluído, pacotes simulados.
+- cosmetics.js (novo): DL.COSMETICS (catálogo), DL.RARITY (Comum→Lendário), DL.EVENTS + eventActive,
+  skins de rack/servidor/switch/storage, acessórios de rack, fitas de LED (DL.drawItem embrulhado;
+  iso.js usa DL.skinKey no cache), roupas/calças/cabelos/chapéus/acessórios (ganchos DL.charOutfit/
+  charLegs/charHair/charHat/charTop chamados por sprites.js), aura dourada (DL.drawAura).
+- inventory.js (novo): datalab.inventory.v1 (itens, quantidade, origem, data, evento; skins equipadas),
+  comprar/vender (50%)/resgatar presente de evento/usar consumível/ativar e guardar bot lendário;
+  janelas #store (O) e #inventory (U) + telas Loja e Inventário no menu principal. Itens de evento:
+  marcados EVENTO, não vendem, ficam após o fim do evento; api.grant(id, src) para eventos futuros.
+  Inspetor do rack/storage: skin própria por objeto (e.skin).
+- crew.js: opções da loja no editor (✦), api.updatePlayer, bots lendários (opts.legend): nível 8,
+  habilidades 80+, tarefas de quase todos os cargos, XP em dobro, aura, selo; dispensar = volta ao
+  inventário. DL.xpBoost (Treinamento Intensivo).
+- Testes (scratchpad, CDP + Chrome): store-test.mjs 47/47 (terreno, compra, venda, equipar, eventos,
+  lendários, câmbio, filtros, persistência após recarregar, menu); regress.js 9/9; econ.js ok.
+  test-all.js: 3 falhas já existentes antes (textos "Folha", kit de contratação, "Próximo pagamento").
+
+-------------------------------------------------------
+STATUS (05/10/2026, 17ª sessão) — BACKEND SUPABASE (contas, saves na nuvem, economia e inventário no servidor)
+-------------------------------------------------------
+- supabase/: migrations (0100 core … 0600 funções), seed.sql (gerado de scripts/export-catalog.js +
+  build-seed.mjs), datalab_full.sql (tudo junto p/ o SQL Editor), Edge Functions shop/inventory/economy/
+  game/admin (+ _shared), config.toml, README.md (passo a passo, 1º admin, testes).
+- Modelo de segurança: public.* só leitura via RLS (dono das linhas); nenhuma escrita sensível pelo
+  navegador; lógica em private.* (fora da API) chamada pelas Edge Functions via SUPABASE_DB_URL com o
+  user id do JWT validado; trava da carteira por jogador + request_id único (sem gasto duplo); rate limit.
+- Economia no servidor: compras cobradas pelo diff do save (preços do servidor, kit, baseline do preset),
+  receita/créditos com teto por tempo real, salários mínimos, terreno pago na hora, anti-farm do
+  "datacenter concluído" (tempo mínimo + 3/dia) e dos créditos por servidor online.
+- Cliente: services/ (cloud, auth, save, economy, inventory, admin), cloud-sync.js, account.js (Conta),
+  config.js só com publishable key (recusa service_role), SDK com SRI, CSP no demo.html.
+- Save real do mundo (save-service.js): também offline (3 espaços locais; "Carregar jogo" do menu restaura).
+- Testes (scratchpad): db-test.mjs 83/83 (PGlite: RLS, trapaças, economia, concessões), Edge Functions
+  reais no Deno contra PGlite via socket + navegador: e2e-browser.mjs 29/29, save-test 21/21,
+  store-test 47/47, regress.js 9/9.
+
+-------------------------------------------------------
+STATUS (09/10/2026, 18ª sessão) — LOGIN NA VERCEL + AUDITORIA + WINDOWS SERVER
+-------------------------------------------------------
+- Login na Vercel (causa): .vercelignore tinha "supabase/" sem "/" no começo → regra do .gitignore casa
+  em qualquer nível e tirava assets/js/supabase/config.js do deploy (jogo sem URL/chave → "Servidor
+  indisponível"). Agora "/supabase/". cloud.js avisa no console se o config.js não carregou.
+- cloud-sync.js: corrida no início — com o SDK rápido o evento de sessão saía antes do listener existir e
+  o jogador logado ficava sem carteira/inventário/save na nuvem. Agora sincroniza depois do init().
+- auth-gate.js: link de e-mail aberto em outro navegador (PKCE) explica "E-mail confirmado! Entre…".
+- save-service.js: o autosave renomeava o save para "Meu datacenter"; o nome do espaço agora é mantido.
+- Terminal (Iniciante): a dica do passo usava o exemplo fixo (10.0.1.12 / SRV-03) — passos têm `cmd`
+  com o IP/nome do próprio servidor. build.js: "por grátis" → "— grátis · kit inicial".
+- winserver.js (novo): Windows Server 2022 simulado. Infra → Servidores → "Windows Server (AD)" pede
+  confirmação e reinstala. Terminal: mídia (dism, setup.exe /install /index:n) → senha do Administrator
+  (política de complexidade) → PowerShell: rede (ipconfig, Get-NetAdapter, New-NetIPAddress…), nome,
+  funções (Install-WindowsFeature), AD (Install-ADDSForest, OU, usuários, grupos, bloqueio), net user,
+  pastas/NTFS (icacls, herança), compartilhamentos (New-SmbShare), DNS (zonas, A, CNAME, Resolve-DnsName),
+  DHCP (escopo sem IPs fixos, opções, autorização, concessões = mesas do mapa), serviços e Event Log.
+  help / help conceitos (AD, DNS, DHCP, permissões, instalação); ajuda do botão por modo de aprendizado.
+- Integração: lição winsetup; 5 missões no painel do terminal (+créditos, 1×); falhas winsvc e lockout
+  (FAULTS.when filtra por SO; service/disk só Linux); monitor (serviços parados, conta bloqueada);
+  talk/jobs/economy com textos do Windows; sysadmin conserta; chamado "Conta bloqueada" no Atendimento;
+  DC com DNS atende a dependência de DNS de Web/E-mail; receita cresce com o que o DC faz; preset
+  "Datacenter médio" já vem com um DC (corp.datalab.local); save guarda o estado (devices[].win).
+- Testes (scratchpad, CDP + Chrome): win.mjs 38/38, smoke.mjs 18/18 (5 presets, 6 h de jogo, janelas,
+  lições, save), store-test 47/47, auth.mjs 6/6 (SDK falso: corrida, login, link PKCE, config ausente),
+  node --check em todos os .js. save-test antigo usava saveLocal (removido): obsoleto.
+
+-------------------------------------------------------
+STATUS (09/10/2026, 19ª sessão) — SAVES NA VERCEL + ECONOMIA
+-------------------------------------------------------
+- Saves na Vercel (causa, confirmada em produção): o secret ALLOWED_ORIGINS das Edge Functions só tinha
+  localhost/127.0.0.1. O preflight CORS de https://datalab-six.vercel.app volta sem Access-Control-Allow-Origin,
+  então game:new falhava e o jogo ficava sem espaço de save ("escolha um espaço de save"). Login funcionava
+  (Auth não usa a lista). CORREÇÃO MANUAL: supabase secrets set ... (comando em supabase/README.md).
+  Funções game/shop/economy/inventory estão publicadas; tabelas com RLS (só as próprias linhas).
+- Cliente: "Salvar"/Ctrl+S e "Menu" pedem um espaço se o jogo ainda não tem (CloudSync.ensureSlot) e mostram
+  a causa real; erro de rede num site publicado explica ALLOWED_ORIGINS; listCloud devolve .error (menu
+  Carregar e Conta → Saves mostram o erro + "Tentar de novo" em vez de "nenhum jogo salvo"); "Menu" sem
+  conseguir salvar pede um 2º clique para sair sem salvar.
+- Economia (economy.js / DL.ECON): problemas nunca descontam dinheiro (só param de render) e conserto em até
+  30 min paga bônus de SLA; custos fixos menores (tráfego 4, link 3, manutenção 0,8, licença 250, plantão 250,
+  rampa 240 min); receita por servidor 48. Contratos de clientes (9 metas: 3/5/8/12/20 servidores, Web+DNS,
+  banco, AD, 3 VMs) pagam uma vez e ficam no save (econ.contracts; saves antigos marcam as metas já cumpridas
+  sem pagar). HUD: "Receita +$X/min · despesas -$Y/min"; Finanças lista contratos, plantões e o mês.
+  Servidor (game_save) não precisou mudar: os tetos anti-trapaça continuam acima dos novos valores.
+- Testes: econ-zero.mjs 11/11 (do zero: nunca negativo em 2 dias, meses com lucro, falha não desconta,
+  SLA, contrato, save antigo), save-flow.mjs 6/6 (SDK falso: CORS bloqueado → erro claro; liberado → cria
+  espaço, salva, reaproveita, lista, carrega; erro de RLS aparece), smoke 18/18, win 38/38, store 47/47,
+  auth 6/6, node --check 49/49.
+
+-------------------------------------------------------
+STATUS (25/10/2026, 20ª sessão) — PROBLEMAS DO ESTAGIÁRIO + XP DE CARREIRA (etapa 1 de 6)
+-------------------------------------------------------
+- problems-data.js (novo): lições do terminal (setup, cable, link, service, disk, port — migradas do
+  terminal.js) e problemas de carreira em formato de dados (o mesmo das tabelas futuras). Passos com check
+  JSON declarativo (ran / state + eq·ne·lt·gt·in / any·all·not), modelos {{dev.ip}} {{rack.id}} {{gw}} e
+  vars lidas ao abrir (porta em erro). Nada dos dados é executado.
+- problems.js (novo): compila lições (DL.compileLesson, DL.LESSONS) e roda os problemas: sorteio no tempo
+  (40 min no início, 80–140 entre problemas na patente do jogador, 260–420 acima; máx. 2 / 1 abertos),
+  problemas com falha disputam a vaga do director.js (~70% dos incidentes na patente do jogador), auto
+  (servidor próprio novo: #11 instalar/cabear → #5 configurar), alvo por seletor (SRV-01 preferido),
+  reserva (d.hold / rack.hold: a equipe deixa para o jogador; acima da patente por 240 min), conclusão
+  (lesson · fixed · online · steps), save (problems.open; problemas de falha não voltam).
+- 11 dos 20 problemas jogáveis: 1, 4, 5, 7, 8, 9, 10, 11, 12, 14, 16. Faltam: resposta (2, 3, 6, 13, 15),
+  comandos novos (17 ss, 18 auth.log/tail/grep, 19 copy run start), dois consoles (20).
+- career.js: Trainee fundida no Estagiário (10 níveis): missão 2 racks + 2 computadores + 1 contratação E
+  300 XP em 6 problemas diferentes → Júnior I. XP por problema (fácil 30, médio 50), repetição 100/50/25%,
+  só problemas dão XP; XP total por save. Snapshot v4 (xp, lvlXp, lvlSolved, solved); saves v3 descem 1
+  nível a partir do 2; mais antigos mantêm. TASK_TIER e build.js UNLOCK/faixas descem 1.
+- terminal.js: evento genérico cmd:<comando>, hostname-show:<nome>, ajuda de whoami/hostname/uname/uptime.
+- ops.js: problemas no painel Tarefas (selo +XP), openTerminal abre a lição do problema, eventos 'tidy' e
+  'cabled' com quem fez (jobs.js / staff.js passam o bot). jobs/crew/staff respeitam d.hold.
+- Decisões do usuário: missão de construção mantida, XP por save, sorteio no tempo, funcionário = 15% do XP
+  só quando atribuído (etapa 4), problemas no seed (etapa 3), lições do Windows ficam como estão.
+- Testes (scratchpad, CDP + Edge headless): problems-test.mjs 28/28 (6 lições migradas, 7 problemas de
+  ponta a ponta, repetição, reserva, equipe sem XP, #11→#5, promoção, save, migração, do zero, sorteio),
+  pace-test.mjs (60 min nos níveis 1 e 4, sem erros).
+- Próximas etapas: 2 passo "resposta" · 3 banco/seed + validação de XP na Edge Function · 4 "Atribuir a…"
+  (15%) · 5 comandos novos · 6 dois consoles.
+
+ETAPA 2 (mesma sessão) — PASSO "RESPOSTA"
+- problems-data.js: type 'answer' { accept (modelos), normalize ip|port|int|text, tol }; vars do problema lidas
+  quando ele começa (p.vars, salvas no save). Problemas novos: 2 inventário (núcleos), 3 qual é o IP,
+  6 em que porta está o servidor (switch, sw.direct = servidor ligado direto, sem patch panel), 13 uso de
+  disco (%, tolerância 1), 15 achar a porta em erro (falha 'port' sem alerta — setup.quiet — para não
+  entregar a resposta; depois de responder, a falha vira ocorrência normal: handoff).
+- problems.js: DL.checkAnswer (Gi0/3 · gi 0/3 · GigabitEthernet0/3 · 10.0.1.12/24 · "12 núcleos" · "84%"),
+  probes hw.cores, disk.pct, sw.direct; consoleFor dá prioridade ao problema que causou a falha do
+  equipamento; respostas erradas contadas (p.wrong, evento 'answer').
+- terminal.js: campo de resposta no passo atual (painel lateral) e "responder <valor>" no console; certo →
+  evento answer:<passo>; errado → conta como tentativa (ajuda pulsa). Experiente mostra a pergunta. Ajuda de
+  lscpu, free -h e responder. dev-autoplay responde com o valor aceito.
+- 16 dos 20 problemas jogáveis (faltam 17, 18, 19, 20).
+- Testes: problems-test.mjs 38/38 (+10: IP, núcleos pelo campo, % com tolerância, porta do servidor, porta
+  em erro sem vazar no alerta + handoff, "responder" fora de pergunta, Experiente, save com vars),
+  pace-test.mjs sem erros.
+
+ETAPA 3 (mesma sessão) — BANCO, SEED E XP NO SERVIDOR
+- migration 20261025000600_problems.sql: catálogo career_ranks, command_help, scenario_lessons, problems,
+  scenario_steps (check_rule / answer em JSON), scenario_step_help (leitura pública, RLS); problem_runs (só o
+  dono lê); game_saves.career_xp / career_level (saves antigos mantêm o nível). private.career_settle reprecia
+  cada problema pelo catálogo (repetido 50/25%, equipe 15%, 1 por 20 min de jogo +1, desconhecido/inativo = 0),
+  limita o XP ao que o servidor viu e bloqueia promoção sem a meta da patente; private.game_save_career =
+  game_save + career_settle numa transação (Edge Function game chama esta).
+- Seed: scripts/build-scenarios.mjs gera seed_scenarios.sql direto de problems-data.js + terminal.js (vm, sem
+  navegador); reescreve passos, desativa o que saiu do jogo. scripts/build-full.mjs regera datalab_full.sql
+  (agora com as migrations 009/010, que faltavam, + seed_scenarios).
+- Cliente: services/scenario-service.js lê as tabelas (sem login) e entrega a DL.applyScenarioData, que valida e
+  troca os dados (o que vier inválido fica de fora; offline = cópia embutida). economy.js manda
+  claim.problems (os que deram XP) no save; career.applyServer aplica o XP / nível do servidor.
+- Deploy: migration + seed_scenarios ANTES de "supabase functions deploy game".
+- Testes: db-test.mjs 18/18 (PGlite com stub de auth: datalab_full inteiro, seed idempotente, preço/repetição/
+  ritmo/equipe/inativo, teto de XP, promoção bloqueada e aceita, cliente antigo, RLS anon/authenticated,
+  private.* fechado, game_load), scenario-test.mjs 7/7 (linhas do banco → scenario-service com cliente falso
+  == cópia embutida; jogo com esses dados), problems-test 38/38, pace-test sem erros.
+
+ETAPA 4 (mesma sessão) — "ATRIBUIR A…"
+- problems.js: botão "Atribuir a…" no problema (Tarefas) abre a lista de quem pode resolver: cargos de
+  problem.roles, cargos criados cuja habilidade principal é a do problema, bots lendários; fora do turno não
+  aparece; mostra habilidade e se está ocupado(a). A escolha vira uma ordem (crew startJob, kind 'equip' no
+  rack, duração bot_minutes, conta como ordem dada). O bot faz o mesmo que o jogador faria: falha → ops.fix
+  (fixedBy = ele), servidor novo → ops.configure (novo em ops.js), cabos → tidy, hostname → nome padrão;
+  perguntas: diz a resposta no chat. Chance de falhar pela habilidade (igual a jobs.js fixTask): o problema
+  volta a ficar livre. Jogador resolve antes → a ordem do bot é cancelada; ordem interrompida → problema livre.
+- XP: só o funcionário atribuído (p.doneBy) rende 15% (CREW_SHARE = career_settle); qualquer outro, 0.
+  Claim "crew" no save. Problema 11 sem atribuição (roles: [] — começa com comprar o servidor).
+- Testes: assign-test.mjs 13/13 (quem pode, painel, pergunta +5, falha +8, hostname/cabos, #11 só você, #5
+  online +8, falha do bot, jogador antes, ordem interrompida, fora do turno), problems-test 38/38, db-test 18/18,
+  scenario-test 7/7, pace-test sem erros.
+
+ETAPA 5 (mesma sessão) — COMANDOS NOVOS (problemas 17, 18, 19)
+- terminal.js (Linux): /var/log/auth.log (dia calmo: cron, sudo, logins da equipe; DL.authAttack põe um IP
+  adivinhando senhas — 9 falhas — e dois "scanners" de uma falha) e /var/log/syslog; cat, tail [-n N | -N],
+  grep [-i] [-c] "texto com espaço" <arquivo>, "comando | grep" (só grep depois do |); ss / netstat -tlnp (sshd 22,
+  nginx 80 se ativo, resolved 53; -p só com sudo, senão a dica). Eventos: cat:/tail:<arquivo>, grep:, grep-hit:,
+  grep-failed:<arquivo>, ss, ss-procs, ss-conn.
+- terminal.js (switch): show running-config com description por porta cabeada; show startup-config (sem a
+  descrição mudada depois do último save: sw.unsaved / unsavedPort); copy running-config startup-config
+  (copy run start) e write memory (wr) — só no modo #, não em (config). Eventos show-run, show-start, config-saved.
+  Ajudas: tail, grep, ss, show-run, show-start, copy-run-start.
+- Problemas: 17 quem tentou entrar (tail → grep "Failed password" → responder o IP; handoff para a segurança),
+  18 em que porta o nginx/sshd escuta (sudo ss -tlnp → responder a porta), 19 salvar a configuração do switch
+  (sh run → sh start → copy run start). Atribuíveis (o bot diz o IP; salva o switch). Save: 17 volta com o mesmo
+  atacante, 19 continua sem salvar. 19 dos 20 problemas jogáveis (falta o 20, dois consoles).
+- Testes: commands-test.mjs 14/14 + todas as anteriores (db 18/18, scenario 7/7, problems 38/38, assign 13/13,
+  pace sem erros).
+
+ETAPA 6 (mesma sessão) — DOIS CONSOLES (problema 20) · OS 20 PROBLEMAS JOGÁVEIS
+- problems-data.js: devices: { sw: 'switch.of' } (o switch do outro lado do cabo do servidor), step.device ('sw';
+  padrão dev), setup { fault: 'port', on: 'sw', quiet } na porta do cabo do servidor, bot: 'fix'. Problema 20:
+  ping falha no SRV → ip link → SW: enable → sh int status → conf t → interface <porta> → shutdown/no shutdown →
+  SRV: ping ok (80 XP).
+- problems.js: RESOLVE (switch.of), extrasFor (o outro equipamento livre e sem falha própria), reserva/existência/
+  console em todos os equipamentos do problema (devicesOf); compileLesson(def, x, vars, devs): cada passo confere o
+  estado e o ran do SEU equipamento (step.on); openConsole abre o console do passo atual (ou o pedido).
+- terminal.js: etiqueta do equipamento em cada passo, "Este passo é no SW-01" + botão que troca de console na
+  mesma lição (hop), aviso no fim do passo; a abertura mostra o passo atual. dev-autoplay troca de console sozinho.
+- Banco: migration 20261025000700_problem_devices.sql (problems.devices, problems.bot_action,
+  scenario_steps.device_role); seed e scenario-service levam e trazem os campos.
+- Testes: twoconsole-test.mjs 11/11 (falha na porta certa sem alerta, reservas, item único, passos por equipamento,
+  botão, correção, volta, +80, console do passo atual, atribuição, switch ocupado, save, dev-autoplay nos dois
+  consoles) + db 18/18, scenario 7/7, problems 38/38, assign 13/13, commands 14/14, pace sem erros.
+- Deploy pendente (feito pelo usuário): migrations 0600 + 0700 + seed_scenarios.sql, depois deploy da função game.
+-------------------------------------------------------
+STATUS (31/10/2026, 21ª sessão) — INCIDENTES DO MONITOR VIRAM ORDENS DE SERVIÇO
+-------------------------------------------------------
+- Antes: temperatura alta nunca era resolvida pela equipe (só o gerente comprava ar, em "Identificar necessidades",
+  com 2+ racks na sala e caixa ≥ 49 mil); host sem ping / site fora / porta parada sem objeto de falha (o jogador
+  tirou o IP, desligou a porta…) ou com falhas que nenhum cargo cobre (cablewrong, flap, wrongip, noip3…)
+  ficavam abertos para sempre; CPU só passava sozinha.
+- monitor.js: cada problema tem p.kind (ping · http · disk · cpu · win:* · hw · port · temp · cables) e
+  p.order; chama staff.incidents(problemas) a cada checagem. Status: PROBLEMA (ordem #n · motivo da fila) →
+  EM ATENDIMENTO (nome · %) → RESOLVIDO (por nome / o pico passou sozinho). Temperatura: alvo (rackTarget, com
+  -1,5 °C de ar revisado e.tuned e -1 °C de placas cegas r.blank) e leitura r.tmon que sobe rápido e esfria em
+  ~1 min. CPU: 1 em 10 picos (STUCK, decisão do usuário) é processo travado que só para com relieve(); os
+  outros passam sozinhos e não abrem ordem. Problemas abertos nunca são descartados da lista.
+- staff.js: ordem tipo 'incident' (ACTS: ação, verbo, tempo em min de jogo, quem faz). planFor decide a ação
+  na hora (sem ping: cabo → conferir cabo e energia 1–2 min; interface/IP → reiniciar 1–3 min; porta →
+  reativar porta 1–2 min; switch quebrado → segue a ordem de conserto; nginx/firewall 1–3; disco 2–4; CPU 2–4;
+  serviço/conta do Windows; temperatura: sem ar → instalar ar 5–8 (custo do catálogo, espera caixa/lugar),
+  com ar → manutenção do ar 3–6, depois manutenção do rack 3–6; cabos 2–4). Uma causa = uma ordem (2 racks
+  quentes na mesma sala, porta do switch + host). Gerente do turno atribui; sem gerente, "Monitor". Fila por
+  gravidade e antiguidade, uma ordem por pessoa, nota "Na fila" / "Aguardando alguém do turno" / "contrate:
+  …". Jogador resolve antes → técnico para e a ordem fecha. Cancelar ordem de incidente = 5 min sem reabrir.
+  Problema de carreira (d.hold) continua do jogador, exceto CPU.
+- ops.js: restore(d, 'ping'|'http'|'disk'|'port', quem) — o mesmo estado final do terminal/cabeamento;
+  falha em atendimento não segura a próxima (tick e director.js), para o ritmo de incidentes não cair.
+- crew.js: def.durFor (duração própria), barra de progresso sobre a cabeça em ordens, status com tempo
+  restante; bots não pegam sozinhos falhas que já têm ordem. jobs.js: rotina de cabos deixa o rack da ordem.
+- winserver.js: DL.winRepair. save-service.js: salva tuned (ar) e blank (rack).
+- Testes: tests/sim-incidents.js (todos os tipos de ponta a ponta, tempos, fila, "contrate", jogador antes,
+  ritmo, 1 hora de jogo) + sim-problems.js 200/200. Navegador (jogo.html?hero, CDP): barra sobre a cabeça,
+  Monitor EM ATENDIMENTO → RESOLVIDO, ar instalado pela equipe; fila de CPU estável no datacenter médio.
+- Ar de precisão: libera no nível 2 (Júnior I, antes 5) — build.js UNLOCK. O preço (9000) fica para o
+  Abner mudar; se mudar, atualizar também public.equipment_prices (o save cobra por essa tabela).
+- Save: ao carregar, a eth0 e o hostname recebem o IP/nome salvos (antes, servidores renumerados voltavam
+  com o IP da numeração nova e sem ping — a origem dos "host indisponível" eternos).
+- Temperatura: Investigar abre um servidor do rack com dicas da causa e o botão "Construir ar de precisão";
+  sensors mostra o ar de entrada (Inlet); jogador resolve antes → o técnico para e não compra outro ar.

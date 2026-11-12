@@ -1,0 +1,43 @@
+/* DataLab — calor e incêndio nos racks (incendio.js): a barra do incêndio, a temperatura perto de um
+   rack, a temperatura no painel do rack. Pixel art / neon como o resto. */
+
+/* ---------- o incêndio: título, a barra do extintor e o que fazer ---------- */
+.fogo-hud {
+  position: absolute; top: 120px; left: 50%; transform: translateX(-50%); z-index: 9;
+  display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+  border: 2px solid #ff4d5e; background: rgba(14, 6, 6, 0.9);
+  box-shadow: 0 0 0 2px #1a0707, 4px 4px 0 2px rgba(0, 0, 0, 0.45), 0 0 18px rgba(255, 77, 94, 0.35);
+  color: #ffe2d2; pointer-events: none;
+  animation: fogo-hud-pulse 0.9s steps(2) infinite;
+}
+.fogo-hud[hidden] { display: none; }
+.fogo-hud b { font: 400 10px/1.2 'Press Start 2P', monospace; color: #ff9a3d; white-space: nowrap; }
+.fogo-hud span { font: 400 18px/1 'VT323', var(--font-mono, monospace); white-space: nowrap; }
+.fogo-hud__bar { width: 120px; height: 8px; background: rgba(255, 255, 255, 0.12); border: 1px solid #3a1a1a; }
+.fogo-hud__bar i { display: block; height: 100%; width: 0; background: #e6edf6; box-shadow: 0 0 6px #ffffff; transition: width 0.15s linear; }
+.fogo-hud.is-spray { border-color: #e6edf6; animation: none; }
+@keyframes fogo-hud-pulse { 50% { border-color: #ff9a3d; } }
+
+/* ---------- a temperatura sobre o rack mais perto ---------- */
+.fogo-temp {
+  position: absolute; left: 0; top: 0; z-index: 7; pointer-events: none;
+  padding: 2px 6px 1px; background: rgba(6, 7, 9, 0.88); border: 1px solid var(--c, #3dffa2);
+  color: var(--c, #3dffa2); font: 400 17px/1 'VT323', var(--font-mono, monospace); white-space: nowrap;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+}
+.fogo-temp[hidden] { display: none; }
+.fogo-temp.is-hot { box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5), 0 0 10px var(--c); }
+
+/* ---------- no painel do rack ---------- */
+.fg-painel__t { margin: 4px 0 2px; color: var(--c, #3dffa2); font: 400 20px/1.1 'VT323', var(--font-mono, monospace); }
+.fg-painel__t b { font-weight: 400; }
+.fg-painel__por { margin: 0 0 6px; color: #8a98ad; font: 400 15px/1.15 'VT323', var(--font-mono, monospace); }
+
+/* ---------- o resumo usa o visual do resumo do apagão (.dj-resumo), em laranja ---------- */
+.fg-resumo { border-color: #ff9a3d; box-shadow: 0 0 0 2px #1a0d05, 6px 6px 0 2px rgba(0, 0, 0, 0.5), 0 0 24px rgba(255, 154, 61, 0.25); }
+.fg-resumo h3 { color: #ff9a3d; }
+
+/* no celular: a barra do incêndio vai para baixo, no meio, como a do apagão */
+.is-mobile .fogo-hud { top: auto; bottom: calc(10px + env(safe-area-inset-bottom)); max-width: min(330px, calc(100vw - 260px)); flex-wrap: wrap; justify-content: center; gap: 4px 8px; }
+.is-mobile .fogo-hud span { font-size: 16px; white-space: normal; text-align: center; }
+@media (prefers-reduced-motion: reduce) { .fogo-hud { animation: none; } }

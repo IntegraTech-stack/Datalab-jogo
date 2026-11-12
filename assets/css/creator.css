@@ -1,0 +1,136 @@
+/* =====================================================================
+   "Meu personagem" / contratar (crew.js · creator): a prévia grande e
+   fixa à esquerda com nome, função, patente e XP; à direita as seções
+   (Aparência · Roupa · Calça · Acessórios · Função) com atalhos no topo;
+   Salvar / Cancelar sempre visíveis no rodapé
+   ===================================================================== */
+.demo .card--creator {
+  display: flex;
+  flex-direction: column;
+  width: min(940px, 100%);
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  padding-bottom: 0;
+}
+.card--creator > .eyebrow-sm, .card--creator > .card__title { flex: none; }
+.demo .creator { flex: 1 1 auto; min-height: 0; grid-template-columns: 280px minmax(0, 1fr); gap: 24px; margin-top: 14px; }
+
+/* the left column never scrolls: who it is, the preview, the poses */
+.creator__side { min-height: 0; justify-content: flex-start; }
+.creator__who { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; text-align: center; }
+.creator__name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 400 15px/20px 'Press Start 2P', var(--font-mono); color: var(--ink); }
+.creator__role { font: 400 11px/1 var(--font-mono); letter-spacing: 1.4px; text-transform: uppercase; color: var(--c); }
+.creator__rank { margin-top: 4px; font: 400 11px/1 var(--font-mono); letter-spacing: 1px; color: var(--c); }
+.creator__xp { position: relative; display: block; width: 100%; height: 8px; margin-top: 2px; border: 1px solid var(--hairline); background: rgba(255, 255, 255, 0.04); overflow: hidden; }
+.creator__xp i { position: absolute; inset: 0; background: linear-gradient(90deg, #3dffa2, #7ef0aa); transform-origin: 0 50%; }
+.creator__xpn { font: 400 10.5px/1 var(--font-mono); color: var(--mute); }
+.demo .creator__stage { padding: 6px 0; background: radial-gradient(ellipse at 50% 85%, rgba(126, 240, 170, 0.1), transparent 60%), #070708; }
+.demo .creator__stage canvas { width: 270px; height: 216px; }
+.creator__side .seg__b { min-height: 34px; }
+
+/* the right column: the only part that scrolls, smoothly, with the shortcuts stuck on top */
+.demo .creator__form {
+  max-height: none;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  gap: 18px;
+  padding: 0 8px 18px 0;
+}
+/* (a flex column that scrolls: its children keep their height instead of shrinking) */
+.demo .creator__form > * { flex: none; }
+.cr-nav {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  gap: 4px;
+  padding: 0 0 8px;
+  background: linear-gradient(180deg, #0d0d0e 80%, rgba(13, 13, 14, 0));
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.cr-nav::-webkit-scrollbar { display: none; }
+.demo .cr-nav__b {
+  flex: none;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--hairline);
+  background: rgba(255, 255, 255, 0.03);
+  font: 400 11px/1 var(--font-mono);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--mute);
+  cursor: pointer;
+  transition: color 0.15s var(--ease), border-color 0.15s var(--ease), background-color 0.15s var(--ease);
+}
+.demo .cr-nav__b:hover { color: var(--ink); }
+.demo .cr-nav__b.is-on { color: #06140c; background: #7ef0aa; border-color: #7ef0aa; }
+.cr-sec { display: flex; flex-direction: column; gap: 14px; padding-top: 4px; scroll-margin-top: 44px; }
+.cr-sec + .cr-sec { padding-top: 16px; border-top: 1px solid var(--hairline); }
+.cr-sec__t { margin: 0; font: 400 12px/1 'Press Start 2P', var(--font-mono); letter-spacing: 1px; color: #7ef0aa; }
+.cr-field > .eyebrow-sm { color: var(--mute); }
+
+/* what is chosen is obvious: neon fill on chips, a bright frame and a tick on colours */
+.demo .card--creator .chip { min-height: 34px; padding: 0 12px; }
+.demo .card--creator .chip.is-on { color: #06140c; background: #7ef0aa; border-color: #7ef0aa; box-shadow: 0 0 10px rgba(126, 240, 170, 0.35); }
+.demo .card--creator .swatches { gap: 8px; }
+.demo .card--creator .swatch { position: relative; width: 32px; height: 32px; }
+.demo .card--creator .swatch.is-on { border-color: #7ef0aa; box-shadow: 0 0 0 2px #0d0d0e, 0 0 0 4px #7ef0aa; }
+.demo .card--creator .swatch.is-on::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: 700 14px/1 var(--font-mono);
+  color: #fff;
+  text-shadow: 0 0 3px #000, 0 0 2px #000;
+}
+
+/* the footer: always in view */
+.demo .card--creator .card__actions {
+  flex: none;
+  margin: 0 -1px;
+  padding: 12px 0 16px;
+  border-top: 1px solid var(--hairline);
+  background: inherit;
+}
+.demo .card--creator .card__actions .btn { min-height: 42px; }
+
+/* ---------- phones ---------- */
+.is-mobile .demo .card--creator { width: 100%; max-height: calc(100dvh - 12px); padding: 10px 14px 0; }
+.is-mobile .card--creator > .eyebrow-sm { display: none; }
+.is-mobile .demo .card--creator > .card__title { font-size: 18px; line-height: 22px; margin: 0; }
+.is-mobile .demo .creator { margin-top: 8px; gap: 14px; }
+.is-mobile .demo .card--creator .chip { min-height: 42px; padding: 0 14px; font-size: 12px; }
+.is-mobile .demo .card--creator .swatch { width: 40px; height: 40px; }
+.is-mobile .demo .cr-nav__b { height: 38px; }
+.is-mobile .demo .card--creator .card__actions { padding: 8px 0 10px; }
+.is-mobile .demo .card--creator .card__actions .eyebrow-sm { display: none; }
+.is-mobile .demo .card--creator .card__actions .btn { min-height: 44px; flex: 1; justify-content: center; }
+@media (orientation: landscape) {
+  .is-mobile .demo .creator { grid-template-columns: 200px minmax(0, 1fr); }
+  .is-mobile .demo .creator__stage canvas { width: 170px; height: 136px; }
+  .is-mobile .creator__side { gap: 6px; }
+  .is-mobile .creator__side .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; gap: 3px; }
+  .is-mobile .creator__side .seg__b { min-height: 36px; padding: 0 2px; font-size: 9px; letter-spacing: 0.3px; overflow: hidden; text-overflow: ellipsis; }
+  .is-mobile .creator__xpn { display: none; }
+  .is-mobile .demo .creator__stage { padding: 2px 0; }
+  .is-mobile .creator__name { font-size: 12px; line-height: 16px; }
+  .is-mobile .creator__side #creatorRandom { min-height: 34px; }
+  /* both columns share the height that is left: the left one scrolls too if a phone is very short */
+  .is-mobile .creator__side { overflow-y: auto; }
+}
+@media (orientation: portrait) {
+  /* one column: preview on top (smaller), then the sections scroll under it */
+  .is-mobile .demo .creator { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+  .is-mobile .demo .creator__stage canvas { width: 160px; height: 128px; }
+  .is-mobile .demo .creator__form { overflow-y: auto; }
+}
+@media (max-width: 860px) {
+  /* (demo.css stacks the creator here and lets the form grow: keep the form scrolling inside) */
+  .demo .creator__form { max-height: none; overflow-y: auto; }
+}
+@media (prefers-reduced-motion: reduce) { .demo .creator__form { scroll-behavior: auto; } }

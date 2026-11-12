@@ -1,0 +1,54 @@
+# DataLab · Supabase CLI config (local dev + function settings).
+# `supabase link --project-ref <ref>` connects this folder to the real project.
+project_id = "datalab"
+
+[api]
+# only public is exposed; the game logic lives in the private schema (reached by the Edge Functions)
+schemas = ["public"]
+extra_search_path = ["public"]
+
+[auth]
+site_url = "http://localhost:5500"
+# Production (dashboard → Authentication → URL Configuration) also needs the Vercel address, e.g.
+#   https://<site>.vercel.app/**  — otherwise e-mail links fall back to localhost and PKCE sign-in fails.
+additional_redirect_urls = ["http://localhost:5500/jogo.html", "http://localhost:5500/email-verificado.html", "http://127.0.0.1:5500/jogo.html", "http://localhost:5500/**", "http://127.0.0.1:5500/**"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+secure_password_change = true
+
+# Every function also validates the token itself (requireUser) — the gateway check is a second layer.
+[functions.shop]
+verify_jwt = true
+
+[functions.inventory]
+verify_jwt = true
+
+[functions.economy]
+verify_jwt = true
+
+[functions.game]
+verify_jwt = true
+
+[functions.admin]
+verify_jwt = true
+
+[functions.payments]
+verify_jwt = true
+
+[functions.feedback]
+verify_jwt = true
+
+[functions.pass]
+verify_jwt = true
+
+[functions.friends]
+verify_jwt = true
+
+# called by AbacatePay (no Supabase JWT): protected by ?webhookSecret= and settled from AbacatePay's API
+[functions.payments-webhook]
+verify_jwt = false

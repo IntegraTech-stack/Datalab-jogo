@@ -1,0 +1,66 @@
+/* DataLab — compact YouTube Music player (ytmusic-player.js). Reuses the inner layout classes of spotify.css
+   (.spot__head, .spot__now, .spot__b…) with its own box, position and red accent.
+   Sits above the finances card and, when the Spotify card is up, above that one too:
+   --econ-h and --spot-h are measured by ytmusic-player.js. */
+.ytm {
+  position: absolute;
+  right: var(--s-xl);
+  bottom: calc(var(--s-xl) + 152px + var(--econ-h, 99px) + var(--spot-h, 0px));
+  width: 216px;
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--hairline);
+  background: rgba(10, 10, 11, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--ink);
+  z-index: 4;
+  transition: border-color 0.3s var(--ease), opacity 0.35s var(--ease), bottom 0.25s var(--ease);
+}
+.ytm[hidden] { display: none; }
+.ytm.is-out { opacity: 0; pointer-events: none; }
+.ytm.is-playing { border-color: rgba(255, 0, 51, 0.4); }
+
+.ytm__logo { width: 14px; height: 14px; flex: none; }
+.ytm .spot__b:hover:not([disabled]), .ytm-bubble .spot__b:hover:not([disabled]) { border-color: #ff0033; }
+.ytm__connect { border-color: rgba(255, 0, 51, 0.55); }
+.ytm__connect:hover { border-color: #ff0033; }
+.ytm__link { justify-self: start; font-size: 10px; color: var(--mute); }
+.ytm__form { display: flex; gap: 6px; min-width: 0; }
+.ytm__token {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 6px;
+  border: 1px solid var(--hairline);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink);
+  font: 400 11px/16px var(--font-mono);
+}
+.ytm__token:focus { outline: none; border-color: #ff0033; }
+.ytm__code { margin: 0; font: 600 22px/1 var(--font-mono); letter-spacing: 6px; color: var(--ink); text-align: center; }
+
+/* HUD button (Jogo menu) */
+.ops-btn--ytm { gap: 6px; border-color: rgba(255, 0, 51, 0.55); color: #ffc2cc; }
+.ops-btn--ytm:hover, .ops-btn--ytm.is-on { border-color: #ff0033; background: rgba(255, 0, 51, 0.1); }
+.ops-btn--ytm[hidden] { display: none; }
+.ytm-ico { width: 10px; height: 10px; flex: none; border-radius: 50%; background: #ff0033; box-shadow: 0 0 0 2px rgba(255, 0, 51, 0.25); }
+.ops-btn--ytm.is-playing .ytm-ico { animation: ytm-beat 1.2s ease-in-out infinite; }
+@keyframes ytm-beat { 50% { box-shadow: 0 0 0 4px rgba(255, 0, 51, 0.1); } }
+
+.ytm.is-flash { animation: ytm-flash 1.4s var(--ease); }
+@keyframes ytm-flash {
+  0%, 60% { border-color: #ff0033; box-shadow: 0 0 0 3px rgba(255, 0, 51, 0.35); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 0, 51, 0); }
+}
+@media (prefers-reduced-motion: reduce) { .ytm.is-flash, .ops-btn--ytm.is-playing .ytm-ico { animation: none; } }
+
+.game.is-build .ytm, .game.is-talk .ytm { opacity: 0; pointer-events: none; }
+
+/* balloon over my character: same box as .spot-bubble (spotify.css), red accent */
+.ytm-bubble { border-color: rgba(255, 0, 51, 0.4); }
+.ytm-bubble.is-playing { border-color: #ff0033; }
+
+@media (max-width: 860px) {
+  .ytm { right: var(--s-lg); bottom: auto; top: calc(64px + var(--econ-h, 58px) + var(--spot-h, 0px)); width: min(216px, calc(100vw - 2 * var(--s-lg))); }
+}

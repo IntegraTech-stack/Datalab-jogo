@@ -1,0 +1,8 @@
+/* DataLab — as lojinhas da rua (lojas.js): a dica do fim do tutorial (as lojinhas abrem a mesma Loja, store.css) */
+
+/* ---------- the tip at the end of the tutorial ---------- */
+.tutorial__tip { margin-top: var(--s-md); padding: 8px 12px; border-left: 2px solid #ffb347; border-radius: 0 var(--r-sm) var(--r-sm) 0; background: rgba(255, 179, 71, 0.08); font-size: 13px; line-height: 19px; color: var(--body); }
+.tutorial__tip[hidden] { display: none; }
+.tutorial__tip b { font-weight: 400; color: var(--ink); }
+.tutorial__tip > b:first-child { margin-right: 6px; color: #ffd166; font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+.tutorial__tip kbd { height: 18px; min-width: 18px; padding: 0 4px; font-size: 10px; }

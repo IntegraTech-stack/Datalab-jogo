@@ -1,0 +1,89 @@
+/* DataLab desktop · the character window. Everything outside the character and its balloon is
+   transparent (the window itself has no background, src-tauri → transparent(true)). Colours and the
+   pixel frame are the game's (landing page / download page). */
+:root {
+  --ink: #05070d;
+  --navy: #0d1424;
+  --steel-1: #262f46;
+  --steel-2: #46506b;
+  --steel-3: #808ba6;
+  --paper: #e6ecf5;
+  --green: #3dffa2;
+  --green-3: #0f4a33;
+  --amber: #ffb547;
+  --red: #ff5f56;
+  --k: 3;   /* one art pixel of the character, in CSS px */
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+body {
+  font: 12px/1.35 ui-monospace, 'SF Mono', Menlo, monospace;
+  color: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
+canvas { image-rendering: pixelated; }
+
+/* the character stands on the bottom edge, near the right corner; the balloon grows up from its head */
+.pal { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end; padding: 0 8px 0 0; }
+.me { position: relative; width: calc(40px * var(--k)); height: calc(58px * var(--k)); margin-right: 24px; }
+#me { display: block; width: 100%; height: 100%; cursor: pointer; outline: none; }
+#me:active { cursor: grabbing; }
+
+/* unread notifications waiting in line */
+.count {
+  position: absolute; right: 18px; top: 34px;
+  min-width: 20px; height: 20px; padding: 0 5px;
+  display: grid; place-items: center;
+  font: 700 11px/1 ui-monospace, Menlo, monospace; color: var(--ink); background: var(--amber);
+  box-shadow: 0 0 0 2px var(--ink);
+}
+.count[hidden] { display: none; }
+
+/* ---------- the balloon over the head ---------- */
+.say {
+  position: relative;
+  width: max-content; max-width: 256px;
+  margin: 0 4px -18px 0;   /* its tail points at the character's head */
+  padding: 10px 12px 10px;
+  background: var(--navy);
+  box-shadow:
+    0 -3px var(--edge, var(--steel-2)), 0 3px var(--edge, var(--steel-2)), -3px 0 var(--edge, var(--steel-2)), 3px 0 var(--edge, var(--steel-2)),
+    0 -6px var(--ink), 0 6px var(--ink), -6px 0 var(--ink), 6px 0 var(--ink),
+    -3px -3px var(--ink), 3px -3px var(--ink), -3px 3px var(--ink), 3px 3px var(--ink);
+  animation: pop .18s steps(3, end);
+  cursor: pointer;
+}
+.say[hidden] { display: none; }
+.say::after {
+  content: ''; position: absolute; right: 74px; bottom: -12px;   /* centred on the head */
+  width: 12px; height: 9px;
+  background: var(--edge, var(--steel-2));
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+@keyframes pop { from { transform: translateY(6px); opacity: 0; } }
+.say--warn { --edge: var(--amber); }
+.say--ok { --edge: var(--green); }
+.say--info { --edge: #a0c3ec; }
+.say--ask { --edge: var(--green); cursor: default; }
+.say__label { display: block; margin: 0 0 3px; font-weight: 700; font-size: 11px; letter-spacing: .4px; text-transform: uppercase; color: var(--edge, var(--steel-3)); }
+.say__text { display: block; color: var(--paper); overflow-wrap: anywhere; }
+.say__hint { display: block; margin-top: 6px; font-size: 10px; color: var(--steel-3); }
+
+.ask { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+.ask button {
+  padding: 6px 10px 5px; border: 0; border-radius: 0;
+  font: 700 11px/1 ui-monospace, Menlo, monospace; text-transform: uppercase; cursor: pointer;
+  color: var(--paper); background: var(--steel-1);
+  box-shadow: inset 0 -2px #1c2438, 0 0 0 2px var(--ink);
+}
+.ask button.yes { color: var(--ink); background: var(--green); box-shadow: inset 0 -2px #1f9e66, 0 0 0 2px var(--ink); }
+.ask button:hover { filter: brightness(1.15); }
+.ask button:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
+.ask label { flex-basis: 100%; display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--steel-3); cursor: pointer; }
+.ask input { margin: 0; accent-color: var(--green); }
+
+@media (prefers-reduced-motion: reduce) { .say { animation: none; } }

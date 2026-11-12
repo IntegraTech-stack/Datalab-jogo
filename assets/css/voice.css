@@ -1,0 +1,118 @@
+/* DataLab — voice chat (voice.js): the microphone button, who is talking, the first-time question,
+   the lit name tag and the Configurações section. Neon green like the title screen. */
+:root { --vc-neon: #3dffa2; --vc-neon-dim: rgba(61, 255, 162, 0.35); --vc-bg: rgba(5, 7, 13, 0.88); }
+
+.vc-icon { width: 10px; height: 14px; flex: none; fill: currentColor; image-rendering: pixelated; }
+
+/* ---------------- in game: bottom right, beside the company card (.econ, 216px wide) ---------------- */
+.vc {
+  position: absolute;
+  right: calc(var(--s-xl, 24px) + 228px);
+  bottom: calc(var(--s-xl, 24px) + 152px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  z-index: 6;
+  pointer-events: none;
+}
+.vc[hidden] { display: none; }
+.vc__talkers { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.vc__talker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 220px;
+  padding: 4px 8px;
+  border: 2px solid var(--vc-neon);
+  background: var(--vc-bg);
+  color: var(--vc-neon);
+  font: 400 18px/1 'VT323', monospace;
+  box-shadow: 0 0 8px var(--vc-neon-dim);
+  animation: vc-in 0.15s ease-out;
+}
+.vc__talker span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vc__talker .vc-icon { animation: vc-blink 0.6s steps(2) infinite; }
+.vc__talker small { font: inherit; font-size: 15px; color: var(--text-dim, #8a98ad); }
+.vc__talker.is-muted { border-color: #46506b; color: var(--text-dim, #8a98ad); box-shadow: none; }
+.vc__talker.is-muted .vc-icon { animation: none; }
+
+.vc__mic {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 2px solid #46506b;
+  background: var(--vc-bg);
+  color: #8a98ad;
+  font: 400 18px/1 'VT323', monospace;
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.vc__mic .vc-icon { width: 15px; height: 21px; }
+.vc__mic:hover { border-color: var(--vc-neon-dim); color: #c9d3e3; }
+.vc__mic.is-wait { border-color: var(--vc-neon-dim); color: var(--vc-neon); }
+.vc__mic.is-on { border-color: var(--vc-neon); color: #05070d; background: var(--vc-neon); box-shadow: 0 0 12px var(--vc-neon), 0 0 2px var(--vc-neon) inset; }
+.is-build .vc { opacity: 0.6; }
+@media (max-width: 860px) {
+  .vc { right: 8px; bottom: 150px; }
+}
+
+@keyframes vc-blink { 50% { opacity: 0.35; } }
+@keyframes vc-in { from { opacity: 0; transform: translateX(6px); } }
+@media (prefers-reduced-motion: reduce) {
+  .vc__talker, .vc__talker .vc-icon { animation: none; }
+}
+
+/* ---------------- the name tag of whoever is talking ---------------- */
+.mp-tag.mp-tag--talk { background: var(--vc-neon); color: #05070d; box-shadow: 0 0 10px var(--vc-neon); }
+.mp-tag.mp-tag--talk::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 10px;
+  margin-right: 5px;
+  vertical-align: -1px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 14' shape-rendering='crispEdges'%3E%3Cpath d='M3 0h4v1h1v7H7v1H3V8H2V1h1zM0 5h1v3H0zm1 3h1v1H1zm1 1h6v1H2zm6-1h1v1H8zm1-3h1v3H9zM4 10h2v2H4zm-2 2h6v1H2z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 14' shape-rendering='crispEdges'%3E%3Cpath d='M3 0h4v1h1v7H7v1H3V8H2V1h1zM0 5h1v3H0zm1 3h1v1H1zm1 1h6v1H2zm6-1h1v1H8zm1-3h1v3H9zM4 10h2v2H4zm-2 2h6v1H2z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* ---------------- first time: why the microphone ---------------- */
+.vc-ask {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(5, 7, 13, 0.6);
+}
+.vc-ask[hidden] { display: none; }
+.vc-ask__box {
+  width: min(420px, 100%);
+  padding: 20px;
+  border: 2px solid var(--vc-neon);
+  background: #05070d;
+  box-shadow: 0 0 18px var(--vc-neon-dim);
+  color: #e6ecf5;
+}
+.vc-ask__eyebrow { margin: 0 0 6px; font: 400 10px/1.4 'Press Start 2P', monospace; color: var(--vc-neon); text-transform: uppercase; }
+.vc-ask__title { margin: 0 0 12px; font: 400 28px/1 'VT323', monospace; color: #e6ecf5; }
+.vc-ask__text { margin: 0 0 10px; font: 400 20px/1.15 'VT323', monospace; color: #c9d3e3; }
+.vc-ask__text b { font-weight: 400; color: var(--vc-neon); }
+.vc-ask__small { font-size: 17px; color: #8a98ad; }
+.vc-ask__acts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+
+/* ---------------- Configurações → Chat de voz ---------------- */
+.settings__sub + .settings { margin-top: var(--s-sm, 8px); }
+.setting--col { flex-direction: column; align-items: stretch; }
+.vc-mutes { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.vc-mutes li { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--ink, #e6ecf5); }
+.vc-mutes li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vc-mutes button[aria-pressed="true"] { border-color: var(--warn, #f5a623); color: var(--warn, #f5a623); }
+.vc-mutes__none { font-size: 12px; color: var(--mute, #8a98ad); }

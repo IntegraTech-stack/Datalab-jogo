@@ -1,0 +1,151 @@
+/* DataLab — multiplayer (lobby.js): the Jogar On-Line screen, the in-game room panel, name tags. */
+
+/* ---------------- Main Menu → Jogar On-Line ---------------- */
+.mp-lobby { display: flex; flex-direction: column; gap: 16px; }
+.mp-form { display: flex; flex-direction: column; gap: 14px; max-width: 560px; }
+.mp-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.mp-field .input { width: 100%; }
+.mp-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 4px; }
+.mp-worlds { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; border: 0; }
+.mp-worlds legend { margin-bottom: 8px; padding: 0; }
+.mp-world { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 2px solid var(--border); background: var(--panel-2); cursor: pointer; }
+.mp-world:has(input:checked) { border-color: var(--teal); }
+.mp-world input { accent-color: var(--teal); flex: none; }
+.mp-world span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mp-world b { font-weight: 400; color: var(--text); overflow-wrap: anywhere; }
+.mp-world small { color: var(--text-dim); }
+.mp-msg { min-height: 1.4em; margin: 0; color: var(--text-dim); }
+.mp-msg--warn { color: var(--warn); }
+.mp-msg--ok { color: var(--ok); }
+.title .mp-world b, .title .mp-world small, .title .mp-msg { font: 400 20px/1.15 'VT323', monospace; }
+.title .mp-world b { color: #e6ecf5; }
+.title .mp-world { border: 0; background: #05070d; box-shadow: 0 0 0 2px #46506b; }
+.title .mp-world:has(input:checked) { box-shadow: 0 0 0 2px #3dffa2; }
+
+/* ---------------- in game: the room panel ---------------- */
+.mp-hud {
+  position: absolute;
+  top: 72px;
+  right: var(--s-xl, 24px);
+  width: 248px;
+  max-height: calc(100% - 340px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm, 6px);
+  background: rgba(11, 11, 12, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 5;
+  overflow: hidden;
+}
+.mp-hud[hidden] { display: none; }
+.is-title .mp-hud { display: none; }
+/* the inspector, the crew panel and the task list open in this same corner: the room panel steps aside */
+.is-crew .mp-hud, .game:has(#panel[aria-hidden="false"]) .mp-hud, .game:has(#opsPanel:not([hidden])) .mp-hud { display: none; }
+.mp-hud__head { display: flex; align-items: center; gap: 8px; width: 100%; padding: 10px 12px; border: 0; background: none; color: var(--ink); cursor: pointer; text-align: left; font: inherit; }
+.mp-hud__head b { flex: 1; min-width: 0; font-weight: 400; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mp-hud__body { display: flex; flex-direction: column; gap: 10px; padding: 0 12px 12px; overflow-y: auto; }
+.mp-hud__code { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; border: 1px solid var(--hairline); background: rgba(5, 181, 177, 0.08); }
+.mp-hud__code b { font: 400 22px/1.1 var(--font-mono, monospace); letter-spacing: 3px; color: var(--teal); user-select: all; }
+.mp-hud__copy { display: flex; flex-wrap: wrap; gap: 6px; }
+.mp-code-in { text-transform: uppercase; letter-spacing: 3px; font-family: var(--font-mono, monospace); }
+.mp-hud__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.mp-hud__list li { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.mp-hud__list canvas { width: 24px; height: 24px; flex: none; image-rendering: pixelated; background: rgba(255, 255, 255, 0.04); }
+.mp-hud__who { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.mp-hud__who b { font-weight: 400; font-size: 13px; line-height: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mp-hud__who small { font-size: 11px; line-height: 14px; color: var(--mute); }
+.mp-hud__acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.mp-hud__note { margin: 0; font-size: 11px; line-height: 15px; color: var(--mute); }
+@media (max-width: 860px) {
+  .mp-hud { top: 64px; right: 8px; width: min(248px, calc(100% - 16px)); }
+}
+
+/* ---------------- other players' name tags ---------------- */
+.mp-tags { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.mp-tag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  max-width: 220px;
+  padding: 3px 7px;
+  border-radius: var(--r-pill, 999px);
+  background: rgba(5, 181, 177, 0.85);
+  color: #05070d;
+  font: 400 10px/1.2 var(--font-mono, monospace);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  will-change: transform;
+}
+.mp-tag--say { text-transform: none; letter-spacing: 0; font-size: 12px; white-space: normal; background: rgba(240, 244, 250, 0.95); }
+.is-build .mp-tags { opacity: 0.5; }
+/* what they are listening to, under the name */
+.mp-tag.has-song { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; border-radius: var(--r-sm, 6px); }
+.mp-tag__name, .mp-tag__song { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.mp-tag__song { text-transform: none; letter-spacing: 0; font-size: 11px; }
+
+/* ---------------- room panel: a player's name opens the card, the song goes under it ---------------- */
+button.mp-hud__who { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+button.mp-hud__who:hover b, button.mp-hud__who:focus-visible b { color: var(--teal); }
+.mp-hud__song { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mp-hud__who .mp-hud__song--spotify { color: #1ed760; }
+.mp-hud__who .mp-hud__song--ytm { color: #ff5c7a; }
+
+/* ---------------- the card of a player ---------------- */
+.mp-card {
+  position: absolute;
+  top: 72px;
+  right: calc(var(--s-xl, 24px) + 256px);
+  width: 280px;
+  max-height: calc(100% - 96px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-sm, 6px);
+  background: rgba(11, 11, 12, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: var(--ink);
+  overflow-y: auto;
+  z-index: 6;
+}
+.mp-card[hidden] { display: none; }
+.is-title .mp-card { display: none; }
+.mp-card__x { position: absolute; top: 8px; right: 8px; }
+.mp-card section { display: flex; flex-direction: column; gap: 6px; }
+.mp-card h3 { margin: 0; font-weight: 400; color: var(--mute); }
+.mp-card__head { display: flex; align-items: center; gap: 12px; padding-right: 24px; }
+.mp-card__body { flex: none; display: flex; padding: 4px; background: rgba(255, 255, 255, 0.04); }
+.mp-card__body canvas { display: block; height: 72px; width: auto; image-rendering: pixelated; }
+.mp-card__who { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
+.mp-card__who b { font-weight: 400; font-size: 16px; line-height: 20px; overflow-wrap: anywhere; }
+.mp-card__who small, .mp-card__none { margin: 0; font-size: 12px; line-height: 16px; color: var(--mute); }
+.mp-card__stats { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; }
+.mp-card__stats li { flex: 1 1 72px; display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 6px 8px; border: 1px solid var(--hairline); }
+.mp-card__stats li.is-wide { flex-basis: 100%; }
+.mp-card__stats small { color: var(--mute); }
+.mp-card__stats b { font-weight: 400; font-size: 15px; line-height: 18px; color: var(--teal); overflow-wrap: anywhere; }
+.mp-card__music { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.mp-card__art { flex: none; width: 48px; height: 48px; display: grid; place-items: center; background: rgba(255, 255, 255, 0.06); color: var(--mute); }
+.mp-card__art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mp-card__track { display: flex; flex-direction: column; min-width: 0; font-size: 12px; line-height: 16px; }
+.mp-card__track b { font-weight: 400; font-size: 14px; line-height: 18px; overflow-wrap: anywhere; }
+.mp-card__track a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.mp-card__track small { font-size: 11px; line-height: 15px; }
+.mp-card__music--spotify small { color: #1ed760; }
+.mp-card__music--ytm small { color: #ff5c7a; }
+.mp-card__rows { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; margin: 0; font-size: 12px; line-height: 17px; }
+.mp-card__rows > div { display: contents; }
+.mp-card__rows dt { color: var(--mute); }
+.mp-card__rows dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.mp-card__sw { display: inline-block; width: 11px; height: 11px; margin-right: 6px; vertical-align: -1px; border: 1px solid rgba(255, 255, 255, 0.35); }
+@media (max-width: 860px) {
+  .mp-card { top: 64px; left: 8px; right: 8px; width: auto; max-height: calc(100% - 80px); }
+}

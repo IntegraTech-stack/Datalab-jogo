@@ -1,0 +1,114 @@
+/* DataLab — compact Spotify player (spotify-player.js), stacked in the right column above the finances card.
+   --econ-h (finances card height + gap) is measured by spotify-player.js. */
+.spot {
+  position: absolute;
+  right: var(--s-xl);
+  bottom: calc(var(--s-xl) + 152px + var(--econ-h, 99px));
+  width: 216px;
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--hairline);
+  background: rgba(10, 10, 11, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--ink);
+  z-index: 4;
+  transition: border-color 0.3s var(--ease), opacity 0.35s var(--ease);
+}
+.spot[hidden] { display: none; }
+/* the "tocando agora" notice fading out by itself (spotify-player.js → hidePeek) */
+.spot.is-out { opacity: 0; pointer-events: none; }
+.spot.is-playing { border-color: rgba(30, 215, 96, 0.35); }
+
+.spot__head { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.spot__head .eyebrow-sm { font-size: 9px; color: var(--mute); }
+.spot__logo { width: 14px; height: 14px; flex: none; }
+.spot__dev { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: right; font: 400 9px/1 var(--font-mono); letter-spacing: 0.4px; color: var(--mute); }
+.spot__x { flex: none; margin-left: auto; width: 18px; height: 18px; padding: 0; border: 0; background: none; color: var(--mute); font: 400 14px/1 var(--font-mono); cursor: pointer; }
+.spot__x:hover { color: var(--ink); }
+
+.spot__note { margin: 0; font-size: 11px; line-height: 15px; color: var(--mute); }
+.spot__msg { margin: 0; font-size: 10px; line-height: 14px; color: var(--sunset-soft, #ffb27a); }
+.spot__connect { justify-self: start; border-color: rgba(30, 215, 96, 0.5); }
+.spot__connect:hover { border-color: #1ed760; }
+
+.spot__now { display: grid; grid-template-columns: 44px 1fr auto; align-items: center; gap: 8px; min-width: 0; }
+.spot__art { width: 44px; height: 44px; background: #15171c; overflow: hidden; }
+.spot__art img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.spot__meta { display: grid; gap: 3px; min-width: 0; }
+.spot__title, .spot__artist { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spot__title { font-size: 12px; line-height: 15px; color: var(--ink); text-decoration: none; }
+a.spot__title:hover { text-decoration: underline; }
+.spot__artist { font-size: 10px; line-height: 13px; color: var(--mute); }
+.spot__ctl { display: flex; gap: 4px; }
+.spot__b { width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 2px solid var(--hairline); background: rgba(255, 255, 255, 0.04); color: var(--ink); cursor: pointer; }
+.spot__b svg { width: 12px; height: 12px; }
+.spot__b:hover:not([disabled]) { border-color: #1ed760; }
+.spot__b[disabled] { opacity: 0.4; cursor: not-allowed; }
+.spot__b:focus-visible { outline: 2px solid var(--twilight); outline-offset: -4px; }
+
+/* HUD button (top bar): always visible when the integration is on, so the card is easy to find */
+.ops-btn--spot { gap: 6px; border-color: rgba(30, 215, 96, 0.55); color: #b9f5cf; }
+.ops-btn--spot:hover, .ops-btn--spot.is-on { border-color: #1ed760; background: rgba(30, 215, 96, 0.1); }
+.ops-btn--spot[hidden] { display: none; }
+.spot-ico { width: 10px; height: 10px; flex: none; border-radius: 50%; background: #1ed760; box-shadow: 0 0 0 2px rgba(30, 215, 96, 0.25); }
+.ops-btn--spot.is-playing .spot-ico { animation: spot-beat 1.2s ease-in-out infinite; }
+@keyframes spot-beat { 50% { box-shadow: 0 0 0 4px rgba(30, 215, 96, 0.1); } }
+
+/* flash when opened from the HUD button */
+.spot.is-flash { animation: spot-flash 1.4s var(--ease); }
+@keyframes spot-flash {
+  0%, 60% { border-color: #1ed760; box-shadow: 0 0 0 3px rgba(30, 215, 96, 0.35); }
+  100% { box-shadow: 0 0 0 0 rgba(30, 215, 96, 0); }
+}
+@media (prefers-reduced-motion: reduce) { .spot.is-flash, .ops-btn--spot.is-playing .spot-ico { animation: none; } }
+
+/* out of the way while building (the finances card moves to the top) and in conversations */
+.game.is-build .spot, .game.is-talk .spot { opacity: 0; pointer-events: none; }
+
+/* balloon over my own character (click the character): what's playing, with play-pause / next */
+.spot-bubble {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 150px) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid rgba(30, 215, 96, 0.35);
+  background: rgba(10, 10, 11, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--ink);
+  pointer-events: auto;
+  z-index: 3;
+  transition: opacity 0.2s var(--ease), border-color 0.3s var(--ease);
+}
+.spot-bubble[hidden] { display: none; }
+.spot-bubble.is-away, .game.is-talk .spot-bubble { opacity: 0; pointer-events: none; }
+.spot-bubble.is-playing { border-color: #1ed760; }
+/* the little tail pointing down at the character */
+.spot-bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  transform: translateX(-50%) rotate(45deg);
+  background: rgb(10, 10, 11);
+  border-right: inherit;
+  border-bottom: inherit;
+}
+.spot-bubble .spot__art { width: 32px; height: 32px; }
+.spot-bubble .spot__b { width: 24px; height: 24px; }
+.spot-bubble__note { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; margin: 0; font-size: 11px; line-height: 14px; color: var(--mute); white-space: nowrap; }
+.spot-bubble__note:has(+ .spot__connect) { grid-column: 1 / 3; }
+.spot-bubble__note.is-msg { white-space: normal; max-width: 220px; }
+
+@media (max-width: 860px) {
+  /* the finances card sits at the top right here (the bottom belongs to the team chat): go right under it */
+  .spot { right: var(--s-lg); bottom: auto; top: calc(64px + var(--econ-h, 58px)); width: min(216px, calc(100vw - 2 * var(--s-lg))); }
+}

@@ -1,0 +1,44 @@
+/* DataLab — motion layer (assets/js/motion.js).
+   Only under html.dl-motion, which motion.js sets unless the system asks for reduced motion or Configurações › Animações
+   is at 0. The springs live in motion.js; here the CSS entrances they replace are switched off, and the small state
+   changes ride the spring curves motion.js writes on :root (--spring-<name>, the stepped --spring-<name>-px, -ms). */
+
+/* ---------- entrances now driven by springs ---------- */
+html.dl-motion .card--modal { transform: none; transition: none; }
+html.dl-motion .panel__inner { transform: none; transition: opacity 0.22s var(--ease); }
+html.dl-motion .toast, html.dl-motion .toast.is-out, html.dl-motion .talk-ping { animation: none; }
+html.dl-motion .mm__view.is-in .mm__view-body { animation: none; }
+
+/* a HUD block folding back stays on screen (and above the panels) until its spring lands */
+html.dl-motion .hud-group.is-closing .hud-group__menu { display: flex; pointer-events: none; }
+html.dl-motion .hud-top:has(.hud-group.is-closing) { z-index: 11; }
+
+/* cards: the hover lift is a spring now */
+html.dl-motion .st-card:hover, html.dl-motion .mv-item:hover, html.dl-motion .mv-room:hover, html.dl-motion .rl-cta:hover { transform: none; }
+
+/* ---------- small state changes on spring curves ---------- */
+html.dl-motion .hud-group__caret { transition: transform var(--spring-jelly-ms, 0.2s) var(--spring-jelly, var(--ease-out)); }
+
+/* the world prompt (F to interact) pops in with a little overshoot; `scale` composes with the transform that follows the world */
+html.dl-motion .prompt {
+  scale: 0.84;
+  transition: opacity 0.16s steps(3), border-color 0.25s var(--ease), scale var(--spring-jelly-ms, 0.3s) var(--spring-jelly, var(--ease-out));
+}
+html.dl-motion .prompt.is-on { scale: 1; }
+
+html.dl-motion .hint { transition: opacity 0.4s steps(4), transform var(--spring-bouncy-ms, 0.6s) var(--spring-bouncy-px, var(--ease)); }
+html.dl-motion .minimap { transition: opacity 0.3s steps(3), transform var(--spring-bouncy-ms, 0.35s) var(--spring-bouncy-px, var(--ease)), border-color 0.5s var(--ease); }
+
+/* ---------- title and main menu: the same pixel steps, now on a spring ---------- */
+html.dl-motion .title__stage { transition: opacity 0.5s steps(5), transform var(--spring-smooth-ms, 0.7s) var(--spring-smooth, var(--ease-out)), filter 0.5s steps(5); }
+html.dl-motion .mm__logo, html.dl-motion .mm__menu, html.dl-motion .mm__player {
+  transition: opacity 0.4s steps(4), transform var(--spring-island-ms, 0.6s) var(--spring-island-px, steps(4));
+}
+html.dl-motion .mm-weekly {
+  transition: opacity 0.4s steps(4), transform var(--spring-island-ms, 0.6s) var(--spring-island-px, steps(4)), border-color 0.2s steps(2);
+}
+html.dl-motion .title[data-screen='menu'] .mm-btn {
+  animation-duration: var(--spring-bouncy-ms, 0.4s);
+  animation-timing-function: var(--spring-bouncy-px, steps(4));
+}
+html.dl-motion .mm-flash { transition: opacity 0.2s steps(2), transform var(--spring-jelly-ms, 0.4s) var(--spring-jelly-px, steps(2)); }

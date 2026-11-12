@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>DataLab</title>
+  <link rel="stylesheet" href="companion.css">
+</head>
+<body>
+  <!-- DataLab desktop: the player's character in a corner of the screen while the game runs in the
+       background. Transparent window, always on top (src-tauri/src/lib.rs → "companion"). -->
+  <main class="pal" id="pal">
+    <section class="say" id="say" hidden aria-live="polite"></section>
+    <div class="me">
+      <canvas id="me" width="40" height="58" role="button" tabindex="0" aria-label="Seu personagem. Clique para abrir o DataLab."></canvas>
+      <span class="count" id="count" hidden></span>
+    </div>
+  </main>
+  <script src="game/sprites.js"></script>
+  <script src="game/cosmetics.js"></script>
+  <script src="game/emotes.js"></script>
+  <script src="companion.js"></script>
+</body>
+</html>

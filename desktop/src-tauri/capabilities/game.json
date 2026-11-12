@@ -1,0 +1,22 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "game",
+  "description": "The game page (the published site, or the local server in development) talks to the desktop shell through assets/js/desktop.js. Only these commands and event listening, nothing else.",
+  "windows": ["main"],
+  "remote": {
+    "urls": [
+      "https://datalab-six.vercel.app/*",
+      "http://127.0.0.1:1420/*",
+      "http://localhost:1420/*"
+    ]
+  },
+  "permissions": [
+    "core:event:allow-listen",
+    "core:event:allow-unlisten",
+    "allow-desktop-hello",
+    "allow-desktop-set-look",
+    "allow-desktop-notify",
+    "allow-desktop-background",
+    "allow-desktop-quit"
+  ]
+}

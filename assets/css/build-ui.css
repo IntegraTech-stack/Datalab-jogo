@@ -1,0 +1,92 @@
+/* =====================================================================
+   Modo construir, arrumado (build.js · demo.js)
+   - PC: o painel da sala ocupa só o que precisa (não a largura toda)
+   - celular deitado: categorias numa coluna fina à esquerda, a faixa de
+     itens / ferramentas da sala ao lado, e UMA barra fina embaixo com
+     ferramentas, desfazer / refazer, saldo, cancelar e confirmar
+   - alvos de toque grandes (≥ 40 px), nada empilhado em cima do mapa
+   ===================================================================== */
+
+/* the room panel (Espaços) is only as wide as its contents */
+.demo .build.is-panel .build__tray { min-height: 0; width: fit-content; min-width: min(100%, 520px); max-width: min(100%, 1060px); }
+.build .room-edit { flex-wrap: nowrap; }
+.build .room-edit .room-more { flex: none; }
+
+/* the item in the hand's price tip: green border when it fits, red when it doesn't */
+.ghost-tip.is-on:not(.is-warn) { border-color: rgba(126, 240, 170, 0.7); }
+
+/* ---------- phones ---------- */
+.is-mobile .game.is-build .touch { display: none !important; }
+.is-mobile .game.is-build .minimap { display: none; }
+
+/* the toolbar: one slim row across the bottom, always in view */
+.is-mobile .build-tools { left: calc(8px + env(safe-area-inset-left)); right: calc(8px + env(safe-area-inset-right)); bottom: calc(6px + env(safe-area-inset-bottom)); gap: 6px; }
+.is-mobile .demo .build-tools__row, .is-mobile .build-tools__row { width: 100%; height: 48px; gap: 4px; padding: 0 4px; justify-content: space-between; }
+.is-mobile .build-tools__grp { gap: 2px; }
+.is-mobile .build-tools__hist { padding-left: 4px; }
+.is-mobile .tool--bar { width: 42px; height: 42px; padding: 0; justify-content: center; }
+.is-mobile .tool--bar svg { width: 18px; height: 18px; }
+.is-mobile .tool--bar span, .is-mobile .tool--bar kbd { display: none; }
+.is-mobile .build-tools__info { display: flex !important; gap: 10px; padding: 0 8px; }
+.is-mobile .build-tools__info small { font-size: 8px; letter-spacing: 0.8px; }
+.is-mobile .build-tools__info b { font-size: 13px; }
+.is-mobile .build-tools__count, .is-mobile .build-tools__help, .is-mobile .build-help { display: none !important; }
+.is-mobile .build-tools .btn--sm { height: 42px; padding: 0 12px; font-size: 14px; }
+.is-mobile .demo .build-cur { height: 42px; max-width: 46px; padding: 0 3px; }
+.is-mobile .build-cur span { display: none; }
+.is-mobile .build-ask { left: 0; right: 0; margin: 0 auto; max-width: min(460px, 100%); bottom: 56px; }
+
+/* the dock: categories as a thin column on the left, sub-tabs + strip beside it, right above the toolbar */
+.is-mobile .demo .build {
+  left: calc(8px + env(safe-area-inset-left));
+  right: calc(8px + env(safe-area-inset-right));
+  bottom: calc(6px + 48px + 6px + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: 1fr auto auto;
+  grid-template-areas: "cats ." "cats subs" "cats tray";
+  align-items: end;
+  justify-items: start;
+  column-gap: 6px;
+  row-gap: 4px;
+  --tray-h: 96px;
+}
+.is-mobile .demo .build .build__cats { grid-area: cats; align-self: end; flex-direction: column; padding: 2px; }
+.is-mobile .demo .bcat { width: 50px; height: 40px; gap: 0; padding: 0; }
+.is-mobile .demo .bcat span { display: none; }
+.is-mobile .bcat__ico { width: 22px; height: 22px; }
+.is-mobile .demo .bcat--find { width: 50px; }
+.is-mobile .build__cats .build__sep { width: auto; height: 1px; margin: 2px 8px; }
+.is-mobile .demo .build .build__subs { grid-area: subs; max-width: 100%; min-height: 0; }
+.is-mobile .demo .bsub { height: 32px; padding: 0 12px; font-size: 11px; }
+.is-mobile .demo .build .build__tray { grid-area: tray; width: 100%; max-width: 100%; }
+/* an item in the hand folds the strip: its sub-tabs go with it (only the ghost on the map) */
+.is-mobile .demo .build.is-folded .build__subs { visibility: hidden; }
+.is-mobile .demo .build-tools__row { justify-content: flex-start; }
+.is-mobile .build-tools__info { margin-left: auto; }
+.is-mobile .demo .build.is-panel .build__tray { width: fit-content; min-width: 0; max-height: 132px; padding: 4px 8px; }
+.is-mobile .demo .build .build__room, .is-mobile .demo .build .build__style { max-height: 118px; }
+.is-mobile .demo .build .cat-item { width: 78px; }
+.is-mobile .demo .build .cat-item canvas { width: 46px; height: 46px; }
+.is-mobile .demo .build__scroll { display: none; }
+.is-mobile .build .room-edit .input.input--sm { width: 170px; flex-basis: 170px; height: 34px; }
+.is-mobile .build .room-more, .is-mobile .build .room-sec .btn--sm { height: 36px; }
+.is-mobile .build .chip--xs { height: 32px; padding: 0 10px; }
+.is-mobile .build .stepper .btn { width: 36px; height: 34px; }
+.is-mobile .build__search { width: min(300px, calc(100% - 10px)); left: 0; }
+
+/* the company card would sit over the strip: in build mode the toolbar already shows the balance */
+.is-mobile .game.is-build .econ { display: none; }
+
+/* portrait phones: the column of categories goes back under the strip */
+@media (orientation: portrait) {
+  .is-mobile .demo .build { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; grid-template-areas: "tray" "subs" "cats"; justify-items: center; }
+  .is-mobile .demo .build .build__cats { flex-direction: row; align-self: auto; }
+  .is-mobile .build__cats .build__sep { width: 1px; height: auto; margin: 6px 2px; }
+  .is-mobile .build-tools__info span:nth-child(2) { display: none; }
+}
+
+/* room names on the map: a little smaller on a phone, so they don't hide the rooms */
+.is-mobile .world-labels .room-label { padding: 3px 6px; gap: 4px; }
+.is-mobile .world-labels .room-label b { font-size: 9.5px; letter-spacing: 0.8px; }
+.is-mobile .world-labels .room-label small { font-size: 9px; }
